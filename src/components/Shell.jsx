@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Home, Landmark, Users, BarChart3, Settings, ShoppingCart, RefreshCcw } from 'lucide-react';
+import { Home, Landmark, Users, BarChart3, ShoppingCart, RefreshCcw } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import './Shell.css';
 
@@ -17,7 +17,6 @@ const NAV_ITEMS = [
   { id: 'dashboard', label: 'Home', Icon: Home, main: true },
   { id: 'sell', label: 'Sell', Icon: ShoppingCart, sell: true },
   { id: 'reports', label: 'Stats', Icon: BarChart3 },
-  { id: 'settings', label: 'Settings', Icon: Settings },
 ];
 
 const Shell = () => {

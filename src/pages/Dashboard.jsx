@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import {
   Bell,
   Search,
+  Settings,
   Wallet,
   Plus,
   ShoppingCart,
@@ -124,6 +125,7 @@ const Dashboard = ({ onAction }) => {
         </div>
         <div className="topbar-actions">
           <button aria-label="Search" onClick={() => { setShowSearch((s) => !s); setSearchQuery(''); }}><Search size={20} /></button>
+          <button aria-label="Settings" onClick={() => onAction('settings')}><Settings size={20} /></button>
           <button aria-label="Notifications"><Bell size={20} /></button>
         </div>
       </header>
