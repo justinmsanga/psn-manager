@@ -45,42 +45,33 @@ const Reports = () => {
 
   const downloadReport = () => {
     const lines = [];
-    lines.push('═══════════════════════════════════════');
-    lines.push('  PSN MANAGER — BUSINESS REPORT');
-    lines.push('═══════════════════════════════════════');
-    lines.push(`  Period:        ${period}`);
-    lines.push(`  Generated:     ${new Date().toLocaleString()}`);
-    lines.push('───────────────────────────────────────');
-    lines.push('  SUMMARY');
-    lines.push('───────────────────────────────────────');
-    lines.push(`  Revenue:       ${money(periodStats.revenue)}`);
-    lines.push(`  Profit:        ${money(periodStats.profit)}`);
-    lines.push(`  Invested:      ${money(walletStats.totalInvested)}`);
-    lines.push(`  Unrecovered:   ${unrecovered.length} account(s)`);
+    lines.push('PSN MANAGER — BUSINESS REPORT');
+    lines.push(`Period: ${period}  |  ${new Date().toLocaleString()}`);
     lines.push('');
-    lines.push('───────────────────────────────────────');
-    lines.push('  TOP GAMES');
-    lines.push('───────────────────────────────────────');
+    lines.push('SUMMARY');
+    lines.push(`Revenue:       ${money(periodStats.revenue)}`);
+    lines.push(`Profit:        ${money(periodStats.profit)}`);
+    lines.push(`Invested:      ${money(walletStats.totalInvested)}`);
+    lines.push(`Unrecovered:   ${unrecovered.length} account(s)`);
+    lines.push('');
+    lines.push('TOP GAMES');
     if (topGames.length) {
       topGames.forEach(([name, total], i) => {
-        lines.push(`  ${i + 1}. ${name.padEnd(35)} ${money(total)}`);
+        lines.push(`${i + 1}. ${name.padEnd(35)} ${money(total)}`);
       });
     } else {
-      lines.push('  (no sales yet)');
+      lines.push('(no sales yet)');
     }
     lines.push('');
-    lines.push('───────────────────────────────────────');
-    lines.push('  RESET SCHEDULE');
-    lines.push('───────────────────────────────────────');
+    lines.push('RESET SCHEDULE');
     if (resetList.length) {
       resetList.forEach((a) => {
-        lines.push(`  ${a.email.padEnd(35)} ${a.nextDeactivation}`);
+        lines.push(`${a.email.padEnd(35)} ${a.nextDeactivation}`);
       });
     } else {
-      lines.push('  (no reset dates)');
+      lines.push('(no reset dates)');
     }
     lines.push('');
-    lines.push('═══════════════════════════════════════');
     const text = lines.join('\n');
     const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
