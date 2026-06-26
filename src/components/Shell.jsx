@@ -58,10 +58,6 @@ const Shell = () => {
           <button type="button" onClick={refreshData}><RefreshCcw size={14} /> Retry</button>
         </div>
       )}
-      {hasSupabaseConfig && dbReady && !dbError && (
-        <div className="db-banner synced">Synced with Supabase</div>
-      )}
-
       <main className={`shell-content ${showLoader ? 'shell-loading' : ''}`}>
         {showLoader ? (
           <div className="shell-loader">
