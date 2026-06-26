@@ -126,7 +126,7 @@ const Dashboard = ({ onAction }) => {
     <div className="nexus-dashboard fade-in">
       <header className="nexus-topbar">
         <div className="admin-cluster">
-          <div className="admin-avatar">{currentAdmin.name.slice(-1)}</div>
+          <h1>PSN Manager</h1>
         </div>
         <div className="topbar-actions">
           <button aria-label="Search" onClick={() => { setShowSearch((s) => !s); setSearchQuery(''); }}><Search size={20} /></button>
