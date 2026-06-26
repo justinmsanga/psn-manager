@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PSN Admin - Reports &amp; Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#303033",
+                        "tertiary-fixed": "#d4e3ff",
+                        "on-surface": "#e2e2e9",
+                        "outline-variant": "#45474a",
+                        "surface": "#111318",
+                        "tertiary": "#a4c9ff",
+                        "inverse-surface": "#e2e2e9",
+                        "surface-container-highest": "#33353a",
+                        "surface-container-high": "#282a2f",
+                        "on-tertiary-fixed-variant": "#004883",
+                        "on-tertiary-container": "#2f7cce",
+                        "tertiary-fixed-dim": "#a4c9ff",
+                        "on-error-container": "#ffdad6",
+                        "on-error": "#690005",
+                        "surface-bright": "#37393f",
+                        "outline": "#909094",
+                        "on-secondary-fixed-variant": "#005137",
+                        "on-surface-variant": "#c6c6ca",
+                        "error": "#ffb4ab",
+                        "error-container": "#93000a",
+                        "secondary-fixed-dim": "#45dfa4",
+                        "primary-container": "#0b0c0e",
+                        "secondary-container": "#00bd85",
+                        "tertiary-container": "#000c1e",
+                        "on-primary-container": "#7a7a7c",
+                        "on-tertiary": "#00315d",
+                        "surface-variant": "#33353a",
+                        "on-primary-fixed-variant": "#464749",
+                        "background": "#111318",
+                        "on-tertiary-fixed": "#001c39",
+                        "secondary": "#45dfa4",
+                        "inverse-on-surface": "#2e3036",
+                        "surface-tint": "#c7c6c9",
+                        "inverse-primary": "#5e5e61",
+                        "primary-fixed-dim": "#c7c6c9",
+                        "primary": "#c7c6c9",
+                        "surface-container-low": "#1a1b21",
+                        "surface-container-lowest": "#0c0e13",
+                        "secondary-fixed": "#68fcbf",
+                        "on-background": "#e2e2e9",
+                        "on-secondary-container": "#00452e",
+                        "surface-container": "#1e2025",
+                        "on-primary-fixed": "#1b1c1e",
+                        "on-secondary": "#003825",
+                        "surface-dim": "#111318",
+                        "on-secondary-fixed": "#002114",
+                        "primary-fixed": "#e3e2e5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "margin-mobile": "16px",
+                        "unit": "4px",
+                        "margin-desktop": "32px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "data-tabular": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-sm": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "data-tabular": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0b0c0e;
+            color: #e2e2e9;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #111318;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #262932;
+            border-radius: 10px;
+        }
+        .tap-highlight-transparent {
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-primary-container min-h-screen pb-20">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gutter h-14 bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional high-resolution avatar of a corporate administrator in a dark tech-focused environment. The lighting is moody with cool blue and obsidian tones. The style is sharp, modern, and serious, fitting an elite business management application for data analysts." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPNpogDz2gu_6CeMRb-CykbWFu4wflpSl00_dxAglumDja6C7edj-I5N4SsZE4R9Ylj76sUggB5PSr4E5ORxEDrLcAqZQXlcbyvBG2HD9yFzokKEP7ncihP0Ojqz97kCNz0TDFIMZqKnH3FYTs5zqYN6et-U0ZQ4WWEeoMWw3Tq0-elo6SX9Sd2pzBYbuaK6dRsfNTzr9qDc77ztMK2i0PjnJv_teRLuGeHw9zoB1CaJ3RmvnP_lr4glJcKAEQtbGED7rBxS_lVko"/>
+</div>
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface">PSN Admin</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="hover:bg-surface-container-high rounded-full p-2 tap-highlight-transparent text-on-surface">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+<main class="pt-20 px-4 max-w-container-max mx-auto space-y-6">
+<!-- Period Switcher & Actions -->
+<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+<div class="inline-flex p-1 bg-surface-container-low rounded-lg border border-outline-variant w-fit">
+<button class="px-4 py-1.5 rounded text-label-md font-label-md text-on-surface-variant hover:text-on-surface transition-colors">Today</button>
+<button class="px-4 py-1.5 rounded bg-surface-container-highest text-label-md font-label-md text-secondary border border-outline-variant shadow-sm">Week</button>
+<button class="px-4 py-1.5 rounded text-label-md font-label-md text-on-surface-variant hover:text-on-surface transition-colors">Month</button>
+<button class="px-4 py-1.5 rounded text-label-md font-label-md text-on-surface-variant hover:text-on-surface transition-colors">All Time</button>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-2 px-4 py-2 border border-outline-variant rounded-lg bg-surface text-label-md font-label-md text-on-surface hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                    Export CSV
+                </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-secondary text-on-secondary rounded-lg text-label-md font-label-md hover:opacity-90 transition-all">
+<span class="material-symbols-outlined text-[18px]">sync</span>
+                    Sync Google Sheets
+                </button>
+</div>
+</div>
+<!-- Analytical Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+<!-- Sales Volume Chart (Main) -->
+<div class="md:col-span-8 bg-surface border border-outline-variant rounded-xl p-6 relative overflow-hidden">
+<div class="flex justify-between items-start mb-8">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Sales Volume</h3>
+<p class="font-label-md text-label-md text-on-surface-variant">Last 7 Days Performance</p>
+</div>
+<div class="text-right">
+<span class="font-display-sm text-display-sm text-secondary">$12,840</span>
+<div class="flex items-center justify-end text-secondary text-label-md gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                            +14.2%
+                        </div>
+</div>
+</div>
+<!-- Bar Chart Placeholder -->
+<div class="flex items-end justify-between h-48 gap-2 px-2">
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-outline-variant rounded-t-sm h-[40%] group-hover:bg-secondary transition-all"></div>
+<span class="font-label-md text-label-md text-on-surface-variant">Mon</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-outline-variant rounded-t-sm h-[65%] group-hover:bg-secondary transition-all"></div>
+<span class="font-label-md text-label-md text-on-surface-variant">Tue</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-outline-variant rounded-t-sm h-[55%] group-hover:bg-secondary transition-all"></div>
+<span class="font-label-md text-label-md text-on-surface-variant">Wed</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-secondary rounded-t-sm h-[85%]"></div>
+<span class="font-label-md text-label-md text-secondary font-bold">Thu</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-outline-variant rounded-t-sm h-[45%] group-hover:bg-secondary transition-all"></div>
+<span class="font-label-md text-label-md text-on-surface-variant">Fri</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-outline-variant rounded-t-sm h-[70%] group-hover:bg-secondary transition-all"></div>
+<span class="font-label-md text-label-md text-on-surface-variant">Sat</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-outline-variant rounded-t-sm h-[60%] group-hover:bg-secondary transition-all"></div>
+<span class="font-label-md text-label-md text-on-surface-variant">Sun</span>
+</div>
+</div>
+</div>
+<!-- Revenue by Game -->
+<div class="md:col-span-4 bg-surface border border-outline-variant rounded-xl p-6 flex flex-col justify-between">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-4">Revenue by Game</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary">sports_soccer</span>
+</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface">FIFA 25</p>
+<div class="w-24 h-1.5 bg-surface-container-highest rounded-full mt-1">
+<div class="bg-secondary h-full rounded-full w-[85%]"></div>
+</div>
+</div>
+</div>
+<span class="font-data-tabular text-data-tabular text-on-surface">$4.2k</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary">directions_car</span>
+</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface">GTA V</p>
+<div class="w-24 h-1.5 bg-surface-container-highest rounded-full mt-1">
+<div class="bg-tertiary h-full rounded-full w-[45%]"></div>
+</div>
+</div>
+</div>
+<span class="font-data-tabular text-data-tabular text-on-surface">$2.1k</span>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 py-2 border-t border-outline-variant text-label-md font-label-md text-on-surface-variant hover:text-secondary transition-colors">
+                    View Full Breakdown
+                </button>
+</div>
+<!-- Profit Efficiency -->
+<div class="md:col-span-6 bg-surface border border-outline-variant rounded-xl p-6 flex items-center gap-6">
+<div class="w-16 h-16 rounded-full bg-tertiary-container flex items-center justify-center border border-tertiary/20">
+<span class="material-symbols-outlined text-tertiary text-3xl">insights</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant">Profit Efficiency</p>
+<div class="flex items-baseline gap-2">
+<span class="font-display-sm text-display-sm text-on-surface">Avg $15/slot</span>
+<span class="text-secondary text-label-md font-label-md">+2.4%</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-1">Optimized across 42 active servers</p>
+</div>
+</div>
+<!-- Reset Queue -->
+<div class="md:col-span-6 bg-surface border border-outline-variant rounded-xl p-6 flex items-center gap-6 border-l-4 border-l-error">
+<div class="w-16 h-16 rounded-full bg-error-container flex items-center justify-center border border-error/20">
+<span class="material-symbols-outlined text-error text-3xl">hourglass_empty</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant">Reset Queue</p>
+<span class="font-display-sm text-display-sm text-on-surface">5 accounts</span>
+<p class="text-xs text-on-surface-variant mt-1">Due for deactivation this week</p>
+</div>
+</div>
+</div>
+<!-- Upcoming Reset Schedule List -->
+<div class="bg-surface border border-outline-variant rounded-xl overflow-hidden">
+<div class="p-6 border-b border-outline-variant flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Upcoming Reset Schedule</h3>
+<span class="material-symbols-outlined text-on-surface-variant">calendar_month</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="px-6 py-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Account ID</th>
+<th class="px-6 py-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Game Title</th>
+<th class="px-6 py-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Reset Date</th>
+<th class="px-6 py-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Status</th>
+<th class="px-6 py-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="px-6 py-4 font-data-tabular text-data-tabular text-on-surface">PSN-88219</td>
+<td class="px-6 py-4 font-body-md text-body-md text-on-surface">FIFA 25</td>
+<td class="px-6 py-4 font-body-md text-body-md text-on-surface-variant">Oct 24, 2023</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-error/10 text-error border border-error/20">Pending Deactivation</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-secondary hover:underline font-label-md text-label-md">Manage</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="px-6 py-4 font-data-tabular text-data-tabular text-on-surface">PSN-44912</td>
+<td class="px-6 py-4 font-body-md text-body-md text-on-surface">GTA V</td>
+<td class="px-6 py-4 font-body-md text-body-md text-on-surface-variant">Oct 25, 2023</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-tertiary/10 text-tertiary border border-tertiary/20">Processing</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-secondary hover:underline font-label-md text-label-md">Manage</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="px-6 py-4 font-data-tabular text-data-tabular text-on-surface">PSN-10223</td>
+<td class="px-6 py-4 font-body-md text-body-md text-on-surface">Elden Ring</td>
+<td class="px-6 py-4 font-body-md text-body-md text-on-surface-variant">Oct 27, 2023</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-on-surface-variant/10 text-on-surface-variant border border-outline-variant">Scheduled</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-secondary hover:underline font-label-md text-label-md">Manage</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-4 bg-surface-container-low flex justify-center">
+<button class="text-label-md font-label-md text-secondary hover:opacity-80 flex items-center gap-1">
+                    Load More
+                    <span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter h-14 bg-surface border-t border-outline-variant">
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg px-4 h-full">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dash</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg px-4 h-full">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-md text-label-md">Money</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg px-4 h-full">
+<span class="material-symbols-outlined">manage_accounts</span>
+<span class="font-label-md text-label-md">Accounts</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg px-4 h-full">
+<span class="material-symbols-outlined">sell</span>
+<span class="font-label-md text-label-md">Sell</span>
+</button>
+<!-- ACTIVE TAB: Reports -->
+<button class="flex flex-col items-center justify-center text-secondary font-bold transition-colors duration-200 px-4 h-full relative">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">Reports</span>
+<div class="absolute bottom-1 w-1 h-1 bg-secondary rounded-full"></div>
+</button>
+</nav>
+<script>
+        // Simple micro-interaction for active period switching
+        const buttons = document.querySelectorAll('.inline-flex button');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                buttons.forEach(b => {
+                    b.classList.remove('bg-surface-container-highest', 'text-secondary', 'border', 'shadow-sm');
+                    b.classList.add('text-on-surface-variant');
+                });
+                btn.classList.add('bg-surface-container-highest', 'text-secondary', 'border', 'shadow-sm');
+                btn.classList.remove('text-on-surface-variant');
+                
+                // Trigger a small "ripple" or scaling effect
+                btn.style.transform = 'scale(0.95)';
+                setTimeout(() => btn.style.transform = 'scale(1)', 100);
+            });
+        });
+
+        // Simulating data loading for the chart on hover
+        const bars = document.querySelectorAll('.group div');
+        bars.forEach(bar => {
+            bar.addEventListener('mouseenter', () => {
+                bar.classList.add('brightness-125');
+            });
+            bar.addEventListener('mouseleave', () => {
+                bar.classList.remove('brightness-125');
+            });
+        });
+    </script>
+</body></html>

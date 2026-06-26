@@ -1,0 +1,16 @@
+.settings-page { padding:18px 16px 28px; max-width:760px; margin:0 auto; }
+.settings-profile, .settings-card { background:rgba(17,19,24,.92); border:1px solid var(--border); border-radius:18px; padding:16px; margin-bottom:12px; }
+[data-theme='light'] .settings-profile, [data-theme='light'] .settings-card { background:var(--bg-secondary); }
+.settings-profile { display:flex; align-items:center; gap:12px; }
+.settings-avatar { width:52px; height:52px; border-radius:16px; display:grid; place-items:center; background:var(--success); color:#002114; }
+.settings-profile div:nth-child(2) { flex:1; }
+.settings-profile strong, .settings-profile span { display:block; }
+.settings-profile span { color:var(--text-tertiary); font-size:12px; }
+.settings-profile b { display:flex; align-items:center; gap:5px; color:var(--success); font-size:12px; }
+.settings-card h3 { font-size:17px; margin-bottom:12px; }
+.settings-row { width:100%; display:flex; align-items:center; gap:10px; min-height:48px; border:0; border-top:1px solid var(--border); background:transparent; color:var(--text-primary); text-align:left; }
+.settings-row:first-of-type { border-top:0; }
+.settings-row span { flex:1; font-weight:700; font-size:13px; }
+.settings-row b { color:var(--text-tertiary); font-size:12px; text-transform:capitalize; }
+.settings-row.muted { opacity:.72; }
+.settings-footer { text-align:center; color:var(--text-tertiary); font-size:12px; padding:20px 0; }

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PSN Manager - Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0B0C0E;
+            color: #e2e2e9;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: #16181D;
+            border: 1px solid #262932;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary": "#303033",
+                      "tertiary-fixed": "#d4e3ff",
+                      "on-surface": "#e2e2e9",
+                      "outline-variant": "#45474a",
+                      "surface": "#111318",
+                      "tertiary": "#a4c9ff",
+                      "inverse-surface": "#e2e2e9",
+                      "surface-container-highest": "#33353a",
+                      "surface-container-high": "#282a2f",
+                      "on-tertiary-fixed-variant": "#004883",
+                      "on-tertiary-container": "#2f7cce",
+                      "tertiary-fixed-dim": "#a4c9ff",
+                      "on-error-container": "#ffdad6",
+                      "on-error": "#690005",
+                      "surface-bright": "#37393f",
+                      "outline": "#909094",
+                      "on-secondary-fixed-variant": "#005137",
+                      "on-surface-variant": "#c6c6ca",
+                      "error": "#ffb4ab",
+                      "error-container": "#93000a",
+                      "secondary-fixed-dim": "#45dfa4",
+                      "primary-container": "#0b0c0e",
+                      "secondary-container": "#00bd85",
+                      "tertiary-container": "#000c1e",
+                      "on-primary-container": "#7a7a7c",
+                      "on-tertiary": "#00315d",
+                      "surface-variant": "#33353a",
+                      "on-primary-fixed-variant": "#464749",
+                      "background": "#111318",
+                      "on-tertiary-fixed": "#001c39",
+                      "secondary": "#45dfa4",
+                      "inverse-on-surface": "#2e3036",
+                      "surface-tint": "#c7c6c9",
+                      "inverse-primary": "#5e5e61",
+                      "primary-fixed-dim": "#c7c6c9",
+                      "primary": "#c7c6c9",
+                      "surface-container-low": "#1a1b21",
+                      "surface-container-lowest": "#0c0e13",
+                      "secondary-fixed": "#68fcbf",
+                      "on-background": "#e2e2e9",
+                      "on-secondary-container": "#00452e",
+                      "surface-container": "#1e2025",
+                      "on-primary-fixed": "#1b1c1e",
+                      "on-secondary": "#003825",
+                      "surface-dim": "#111318",
+                      "on-secondary-fixed": "#002114",
+                      "primary-fixed": "#e3e2e5"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "16px",
+                      "margin-mobile": "16px",
+                      "unit": "4px",
+                      "margin-desktop": "32px",
+                      "container-max": "1280px"
+              },
+              "fontFamily": {
+                      "body-md": ["Inter"],
+                      "headline-sm": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "display-sm": ["Inter"],
+                      "label-md": ["Inter"],
+                      "data-tabular": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "display-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "display-sm": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                      "data-tabular": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface-container-lowest min-h-screen pb-20">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gutter h-14 bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional close-up portrait of a corporate executive for a profile avatar. The subject is a composed man in his late 30s with short hair, wearing a high-quality charcoal gray business suit against a minimalist deep obsidian studio background. The lighting is sharp and cinematic, reflecting a high-stakes financial environment with deep shadows and clear highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcniystCEoKDSXKDIdgqlHDtOUrTuaUHyaq_MNyZFTJqfACxD2zgoigr7ITTa8FXlUC4kXB2NJzkS5Od9EqHU4wWY528CeA6C5btuSNVzIi7KvCnj4rpV4tHmJWnVg1fXLaMn_QIY5P6962Kjcft_uY6naZivEVJYkAIN5vs3JVVUpOE4FDW6j74B86HdsauUfRzz17B-f7NdUA-j54Jx7XeZta0HHiOsHmsHyiU2Qxkl0hseWVXcyl7YnScbCjhOiRza8lnaEl9c"/>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">PSN Manager</span>
+<span class="text-[10px] font-label-md text-on-surface-variant uppercase tracking-wider">Admin A • Oct 24, 2023</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="hover:bg-surface-container-high rounded-full p-2 transition-colors">
+<span class="material-symbols-outlined text-on-surface">notifications</span>
+</button>
+<button class="hover:bg-surface-container-high rounded-full p-2 transition-colors">
+<span class="material-symbols-outlined text-on-surface">search</span>
+</button>
+</div>
+</header>
+<main class="pt-20 px-gutter max-w-container-max mx-auto space-y-6">
+<!-- Hero: Business Wallet Card -->
+<section class="relative overflow-hidden glass-card rounded-xl p-6">
+
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-4">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-[0.1em]">Business Wallet Balance</span>
+<span class="bg-secondary/10 text-secondary px-2 py-1 rounded text-[10px] font-bold border border-secondary/20">+12% THIS MONTH</span>
+</div>
+<div class="flex items-baseline gap-2 mb-6">
+<h1 class="font-display-lg text-display-lg text-on-surface">$12,450.82</h1>
+<span class="text-secondary material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+</div>
+<div class="flex gap-4">
+<div class="flex-1 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-3/4"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Actions Row -->
+<section class="grid grid-cols-4 gap-3">
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-full aspect-square glass-card rounded-lg flex items-center justify-center group-active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-secondary transition-colors">add_card</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Add Money</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-full aspect-square glass-card rounded-lg flex items-center justify-center group-active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-secondary transition-colors">shopping_cart</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Buy Account</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-full aspect-square bg-secondary rounded-lg flex items-center justify-center group-active:scale-95 transition-transform border border-secondary shadow-[0_0_15px_rgba(69,223,164,0.3)]">
+<span class="material-symbols-outlined text-on-secondary">sell</span>
+</div>
+<span class="font-label-md text-label-md text-secondary font-bold">Sell Slot</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-full aspect-square glass-card rounded-lg flex items-center justify-center group-active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-error transition-colors">receipt_long</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Expense</span>
+</button>
+</section>
+<!-- Metrics Grid (2x3) -->
+<section class="grid grid-cols-2 gap-3">
+<div class="glass-card p-4 rounded-lg border-l-2 border-l-primary">
+<span class="font-label-md text-label-md text-on-surface-variant block mb-1">Total Capital</span>
+<span class="font-headline-md text-headline-md text-on-surface">$50,000.00</span>
+</div>
+<div class="glass-card p-4 rounded-lg border-l-2 border-l-tertiary">
+<span class="font-label-md text-label-md text-on-surface-variant block mb-1">Total Invested</span>
+<span class="font-headline-md text-headline-md text-on-surface">$32,000.00</span>
+</div>
+<div class="glass-card p-4 rounded-lg border-l-2 border-l-secondary">
+<span class="font-label-md text-label-md text-on-surface-variant block mb-1">Sales Revenue</span>
+<span class="font-headline-md text-headline-md text-on-surface">$18,000.00</span>
+</div>
+<div class="glass-card p-4 rounded-lg border-l-2 border-l-secondary">
+<span class="font-label-md text-label-md text-on-surface-variant block mb-1">Profit/Loss</span>
+<span class="font-headline-md text-headline-md text-secondary">+$4,200.00</span>
+</div>
+<div class="glass-card p-4 rounded-lg border-l-2 border-l-outline">
+<span class="font-label-md text-label-md text-on-surface-variant block mb-1">Wallet Locked</span>
+<span class="font-headline-md text-headline-md text-on-surface-variant">$850.12</span>
+</div>
+<div class="glass-card p-4 rounded-lg border-l-2 border-l-error">
+<span class="font-label-md text-label-md text-on-surface-variant block mb-1">Withdrawn</span>
+<span class="font-headline-md text-headline-md text-on-surface">$2,000.00</span>
+</div>
+</section>
+<!-- Attention Required -->
+<section class="space-y-3">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Attention Required</h2>
+<span class="text-error font-label-md text-label-md px-2 py-0.5 rounded-full bg-error/10 border border-error/20">3 ALERTS</span>
+</div>
+<div class="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+<div class="flex-shrink-0 w-64 glass-card p-4 rounded-lg border-l-4 border-l-error bg-error/5">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-error">dangerous</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Deactivate Items</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-3">2 Accounts reached their slot limit and are ready to be deactivated.</p>
+<button class="w-full py-2 bg-error text-on-error rounded font-bold text-label-md hover:bg-error-container transition-colors">PROCESS NOW</button>
+</div>
+<div class="flex-shrink-0 w-64 glass-card p-4 rounded-lg border-l-4 border-l-tertiary bg-tertiary/5">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-tertiary">restart_alt</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Reset Available</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-3">1 Account is eligible for a periodic security reset. Action recommended.</p>
+<button class="w-full py-2 bg-tertiary text-on-tertiary rounded font-bold text-label-md hover:bg-tertiary-fixed-dim transition-colors">VIEW ACCOUNT</button>
+</div>
+</div>
+</section>
+<!-- Recent Sales -->
+<section class="space-y-3 pb-8">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Recent Sales</h2>
+<button class="text-secondary font-label-md text-label-md">View All</button>
+</div>
+<div class="space-y-0.5 rounded-xl overflow-hidden border border-outline-variant">
+<!-- Row 1 -->
+<div class="bg-surface p-4 flex items-center justify-between border-b border-outline-variant">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-surface-container-high flex items-center justify-center overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="High-resolution digital cover art for the game FIFA 25, showing a professional soccer player in a dynamic action pose on a vibrant, energetic stadium pitch. The style is sharp, corporate, and modern, with sleek typography and a color scheme of deep navy and electric neon accents consistent with high-end sports gaming visuals." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyVr0tPpvcDV3kuBRYJrdzUnuCabcD9sWqzN7BxMrL_h-wHvtRO6frDFXntPZr3Lrn93K1sm1RGBHLkTT8QUxY__tj-mbNRC9teGMKlORJ27UVmVGJYix7JIkWhMTKPy2iRm0x3wCe9NqLnnrOOroSwMG8b-wev0BExn-c9I1Vb_rK3R6Jg46n0uBCJWICvp0deWIUFCvSPPQrRuHF3I9djRgJcMOhXCxiaXIdYASVxU6smz8RvzyWmAfOmEJaE3--0FDaw7Ul1r0"/>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-data-tabular text-data-tabular text-on-surface">FIFA 25</span>
+<span class="text-[10px] bg-surface-container-highest px-1.5 py-0.5 rounded font-bold">PS5</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface-variant block truncate w-32">user.alpha@domain.com</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-data-tabular text-data-tabular text-on-surface block">$45.00</span>
+<div class="flex items-center justify-end gap-1">
+<span class="text-[10px] font-label-md text-secondary uppercase">Reset Slot</span>
+<span class="text-[10px] text-on-surface-variant">• 2h ago</span>
+</div>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="bg-surface p-4 flex items-center justify-between border-b border-outline-variant">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-surface-container-high flex items-center justify-center overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="Vibrant and high-contrast digital promotional artwork for a modern console game. The image features a dark, cinematic background with sharp, futuristic glowing elements in cyan and magenta. The composition is clean and premium, designed for a high-end gaming dashboard UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuARN9FFOK3ZVwkSBr4oW_b_b06l9Rk2JQfHujeq_UUO39HjHYKcRHm1LcprZQ5fDc6TJs-Cis89P1JIlqFeIwA2mG_FG6kRVyjLMOoAD1gzBexU0zcnVit6wlhXsbNmrAuYFGJobAmpA_dmyZwqOvvQzgUcH-wRflnFVBePoEW-Ejims_q42qr60Os94QxulQb8puj-IUi9YnnGIvNQARhbH19hxD5FAl7o2WoGfczAGROmjgx45qfKLNmJ8iRCAaCbSTJhXnaFTSo"/>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-data-tabular text-data-tabular text-on-surface">Spider-Man 2</span>
+<span class="text-[10px] bg-surface-container-highest px-1.5 py-0.5 rounded font-bold">PS5</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface-variant block truncate w-32">gamer.pro@outlook.com</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-data-tabular text-data-tabular text-on-surface block">$39.00</span>
+<div class="flex items-center justify-end gap-1">
+<span class="text-[10px] font-label-md text-secondary uppercase">Reset Slot</span>
+<span class="text-[10px] text-on-surface-variant">• 5h ago</span>
+</div>
+</div>
+</div>
+<!-- Row 3 -->
+<div class="bg-surface p-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-surface-container-high flex items-center justify-center overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="Dramatic and detailed game cover artwork featuring a legendary fantasy hero standing on a cliff edge overlooking a vast, dark mystical kingdom. The art style is hyper-realistic with moody, low-key lighting and rich textures of stone and leather, designed for a professional digital game marketplace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhkMpYArlEfRNKtETij1ko2MtcTLAVar17w_AXLOP7PXV3XzK-AaanjYnLRrSASs0SSQeUceIsmIdfr1uz9VMS8okmankOxZXQ_hBCGQrAIv6y9pYYIzBBH1J5MQ5VfYPYZXX0Ok5GbVld2vTnWXsEXMs0uAsR5iYMoM_OfuUvexWnQhZ9p_92BGnhF-E77l4uFDPrJy4p0DB5iQj3_45NVGUKVTWLs_t53eGYa7SDYOzxcHHX8C1NRHWmZ6PJMVR7k8RgZXJe1MY"/>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-data-tabular text-data-tabular text-on-surface">Elden Ring</span>
+<span class="text-[10px] bg-surface-container-highest px-1.5 py-0.5 rounded font-bold">PS4</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface-variant block truncate w-32">shadow_knight@gmail.com</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-data-tabular text-data-tabular text-on-surface block">$55.00</span>
+<div class="flex items-center justify-end gap-1">
+<span class="text-[10px] font-label-md text-secondary uppercase">Reset Slot</span>
+<span class="text-[10px] text-on-surface-variant">• 1d ago</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar Shell -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter h-14 bg-surface border-t border-outline-variant">
+<!-- Dash (Active) -->
+<a class="flex flex-col items-center justify-center text-secondary font-bold transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-md text-label-md">Dash</span>
+<div class="w-1 h-1 bg-secondary rounded-full mt-0.5"></div>
+</a>
+<!-- Money -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-md text-label-md">Money</span>
+</a>
+<!-- Accounts -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">manage_accounts</span>
+<span class="font-label-md text-label-md">Accounts</span>
+</a>
+<!-- Sell -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">sell</span>
+<span class="font-label-md text-label-md">Sell</span>
+</a>
+<!-- Reports -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions for buttons
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.classList.add('scale-95');
+                setTimeout(() => btn.classList.remove('scale-95'), 100);
+            });
+        });
+
+        // Atmospheric effect: Pulse the balance container subtlely
+        const balanceCard = document.querySelector('.glass-card');
+        if (balanceCard) {
+            let hue = 0;
+            setInterval(() => {
+                hue = (hue + 1) % 360;
+                // Optional: Dynamic border pulse if needed, currently kept static for "Serious Business" style.
+            }, 50);
+        }
+    </script>
+</body></html>

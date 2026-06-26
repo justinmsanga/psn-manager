@@ -1,0 +1,2427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>PSN Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f7f7f5;--surface:#fff;--surface2:#f0f0ec;--surface3:#e8e8e3;
+  --border:#e2e2dc;--border2:#ccccc5;
+  --text:#181816;--text2:#5a5a52;--text3:#9a9a90;
+  --green:#16a34a;--green-bg:#f0fdf4;--green-bd:#bbf7d0;
+  --red:#dc2626;--red-bg:#fef2f2;--red-bd:#fecaca;
+  --amber:#d97706;--amber-bg:#fffbeb;--amber-bd:#fde68a;
+  --blue:#2563eb;--blue-bg:#eff6ff;--blue-bd:#bfdbfe;
+  --ai:#7c3aed;
+  --shadow:0 1px 3px rgba(0,0,0,0.06);
+}
+[data-theme="dark"]{
+  --bg:#0f0f0e;--surface:#1a1a18;--surface2:#242422;--surface3:#2e2e2c;
+  --border:#2e2e2c;--border2:#3e3e3a;
+  --text:#f0f0ec;--text2:#a0a098;--text3:#606058;
+  --green:#22c55e;--green-bg:#052e16;--green-bd:#14532d;
+  --red:#f87171;--red-bg:#2d0d0d;--red-bd:#7f1d1d;
+  --amber:#fbbf24;--amber-bg:#2d1f00;--amber-bd:#78350f;
+  --blue:#60a5fa;--blue-bg:#0d1f3c;--blue-bd:#1e3a5f;
+  --ai:#a78bfa;
+  --shadow:0 1px 3px rgba(0,0,0,0.3);
+}
+html{height:100%;height:-webkit-fill-available;font-size:16px}
+body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);color:var(--text);font-family:'Geist',sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+.screen{display:none;flex-direction:column;height:100vh;height:100dvh;height:-webkit-fill-available;position:relative}
+#screen-setup{overflow-y:auto;height:100vh;height:100dvh}
+.screen.active{display:flex}
+
+.nav{display:flex;align-items:center;justify-content:space-between;padding:env(safe-area-inset-top,14px) 16px 10px;padding-top:max(env(safe-area-inset-top),14px);background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;gap:8px}
+.nav-title{font-size:18px;font-weight:800;letter-spacing:-.03em}
+.nav-title span{background:linear-gradient(135deg,var(--ai),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.nav-sub{font-size:10px;color:var(--text3);display:flex;align-items:center;gap:4px;margin-top:2px}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--green)}
+.icon-btn{width:34px;height:34px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.icon-btn:active{background:var(--surface3)}
+
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--surface);border-bottom:2px solid var(--border);flex-shrink:0;padding:0}
+.stat-chip{background:var(--surface);padding:10px 2px;text-align:center;overflow:hidden;min-width:0}
+.stat-chip .val{font-size:15px;font-weight:800;transition:all .4s cubic-bezier(.4,0,.2,1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;letter-spacing:-.02em}
+.stat-chip .lbl{font-size:8px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+
+.main-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg)}
+
+/* PULL TO REFRESH */
+.ptr-wrap{position:relative;overflow:hidden;flex:1;display:flex;flex-direction:column}
+.ptr-indicator{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:8px;height:52px;font-size:12px;font-weight:600;color:var(--text3);transform:translateY(-52px);transition:transform .2s ease,opacity .2s;pointer-events:none;z-index:10;background:var(--bg)}
+.ptr-indicator.visible{transform:translateY(0)}
+.ptr-indicator.refreshing{color:var(--blue)}
+.ptr-spinner{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:ptr-spin .6s linear infinite;display:none}
+.ptr-indicator.refreshing .ptr-spinner{display:block}
+.ptr-indicator.refreshing .ptr-arrow{display:none}
+.ptr-arrow{font-size:16px;transition:transform .2s}
+.ptr-arrow.ready{transform:rotate(180deg)}
+@keyframes ptr-spin{to{transform:rotate(360deg)}}
+/* SKELETONS */
+@keyframes skel{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}
+.skel{background:var(--surface3);border-radius:6px;animation:skel 1.4s ease-in-out infinite}
+.skel-line{height:13px;margin:4px 0}
+.skel-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px}
+
+
+.stat-chip:not(:last-child){border-right:1px solid var(--border)}
+.stat-chip-accent{height:3px;border-radius:0 0 3px 3px;margin:0 auto 0;width:32px}
+.action-menu{padding:10px 16px 14px;display:flex;flex-direction:column;gap:7px}
+.section-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;margin-top:8px}
+.action-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.action-btn{display:flex;align-items:center;gap:10px;padding:13px 14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;cursor:pointer;text-align:left}
+.action-btn:active{background:var(--surface2);transform:scale(.98)}
+.action-btn{transition:transform .1s,box-shadow .15s}
+.action-btn:hover{box-shadow:0 2px 12px rgba(0,0,0,0.07)}
+.action-btn.full{grid-column:1/-1}
+.action-num{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+.action-title{font-size:15px;font-weight:600;color:var(--text)}
+.action-desc{font-size:12px;color:var(--text3);margin-top:2px}
+.result-area{padding:0 16px 24px;display:flex;flex-direction:column;gap:8px}
+
+/* CARDS */
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow);transition:box-shadow .2s,transform .15s;cursor:pointer}
+.result-card:hover{box-shadow:0 4px 20px rgba(0,0,0,0.1);transform:translateY(-1px)}
+.result-card:active{transform:translateY(0)}
+.rc-email{font-size:11px;font-weight:600;color:var(--blue);font-family:'DM Mono',monospace;word-break:break-all;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.rc-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px;gap:8px}
+.rc-label{color:var(--text3);font-weight:500;flex-shrink:0}
+.rc-val{color:var(--text);font-family:'DM Mono',monospace;font-size:12px;text-align:right;word-break:break-all}
+.games-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.game-tag{font-size:10px;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);font-weight:500}
+.console-tag{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
+.console-ps5{background:#e0e7ff;color:#3730a3;border:1px solid #c7d2fe}
+.console-ps4{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.slots-bar{display:flex;gap:4px;margin-top:6px}
+.slot{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:1px solid var(--border)}
+.slot-free{background:var(--green-bg);color:var(--green);border-color:var(--green-bd)}
+.slot-sold{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.backup-codes{margin-top:8px;padding:8px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)}
+.backup-codes-label{font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.backup-code{font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);padding:2px 0}
+
+.badge{display:inline-block;font-size:9px;font-weight:800;padding:3px 9px;border-radius:20px;letter-spacing:.03em;text-transform:uppercase}
+.badge-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.badge-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+.badge-amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd)}
+.toast{padding:12px 14px;border-radius:10px;font-size:13px;font-weight:500;line-height:1.6;white-space:pre-wrap}
+.toast.success{background:var(--green-bg);border:1px solid var(--green-bd);color:var(--green)}
+.toast.error{background:var(--red-bg);border:1px solid var(--red-bd);color:var(--red)}
+.toast.info{background:var(--blue-bg);border:1px solid var(--blue-bd);color:var(--blue)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .22s ease;visibility:hidden}
+.modal-overlay.open{opacity:1;pointer-events:all;visibility:visible}
+.modal{background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 36px;width:100%;max-height:92vh;overflow-y:auto;transform:translateY(40px);transition:transform .25s ease;-webkit-overflow-scrolling:touch}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-handle{width:40px;height:4px;border-radius:4px;background:var(--border2);margin:14px auto 4px}
+.modal-header{padding:14px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:18px;font-weight:700}
+.modal-close{width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--text2);line-height:1}
+.modal-body{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.modal-actions{padding:0 18px;display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.field-group{display:flex;flex-direction:column;gap:5px}
+.field-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
+.field-req{color:var(--red);margin-left:2px}
+.field-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px 14px;font-size:16px;color:var(--text);font-family:'Geist',sans-serif;outline:none;transition:border-color .15s}
+.field-input:focus{border-color:var(--blue);background:var(--surface);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.field-input::placeholder{color:var(--text3)}
+.select-input{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239a9a90' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.pill-group{display:flex;flex-wrap:wrap;gap:6px}
+.pill{padding:9px 15px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;font-family:'Geist',sans-serif}
+.pill.selected{background:var(--text);color:#fff;border-color:var(--text)}
+.pill.ps5.selected{background:#3730a3;border-color:#3730a3}
+.pill.ps4.selected{background:#92400e;border-color:#92400e}
+.info-box{background:var(--blue-bg);border:1px solid var(--blue-bd);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--blue);line-height:1.6}
+.backup-row{display:flex;gap:6px;align-items:center}
+.backup-num{font-size:11px;font-weight:600;color:var(--text3);min-width:20px}
+
+.btn-primary{width:100%;padding:16px;border-radius:12px;background:var(--text);border:none;color:#fff;font-size:16px;font-weight:600;cursor:pointer;font-family:'Geist',sans-serif;transition:opacity .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary:active,.btn-primary:disabled{opacity:.6}
+.btn-secondary{width:100%;padding:15px;border-radius:12px;background:transparent;border:1px solid var(--border);color:var(--text2);font-size:16px;font-weight:500;cursor:pointer;font-family:'Geist',sans-serif}
+
+/* INVENTORY */
+.search-bar{padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.search-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 13px 9px 36px;font-size:14px;color:var(--text);font-family:'Geist',sans-serif;outline:none;background-image:url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239a9a90' stroke-width='2' stroke-linecap='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:10px center}
+.inv-list{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch}
+.inv-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;font-size:14px}
+.inv-item:active{border-color:var(--border2)}
+
+/* BOTTOM NAV */
+.bottom-nav{display:flex;background:var(--surface);border-top:1px solid var(--border);padding:6px 0 max(env(safe-area-inset-bottom),8px);flex-shrink:0}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;cursor:pointer;border:none;background:none}
+.nav-tab svg{width:24px;height:24px}
+.nav-tab span{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.nav-tab.active svg{stroke:var(--text)}
+.nav-tab.active span{color:var(--text)}
+.nav-tab.active::after{content:'';display:block;width:4px;height:4px;border-radius:50%;background:var(--text);margin:2px auto 0}
+.nav-tab:not(.active) svg{stroke:var(--text3)}
+.nav-tab:not(.active) span{color:var(--text3)}
+
+/* PROFITS */
+.profit-body{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
+.profit-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px}
+.profit-card h3{font-size:10px;color:var(--text3);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.big-num{font-size:32px;font-weight:700;letter-spacing:-.02em}
+.profit-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.profit-mini{background:var(--surface2);border-radius:10px;padding:12px;text-align:center;border:1px solid var(--border)}
+.profit-mini .val{font-size:17px;font-weight:700}
+.profit-mini .lbl{font-size:9px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+.game-row-profit{display:flex;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);gap:10px}
+.game-row-profit:last-child{border:none}
+.game-bar-wrap{flex:1;height:3px;background:var(--surface3);border-radius:2px;overflow:hidden}
+.game-bar{height:100%;background:var(--text);border-radius:2px}
+
+/* SETUP */
+.setup-body{flex:1;overflow-y:auto;padding:20px 18px 100px;display:flex;flex-direction:column;gap:14px;-webkit-overflow-scrolling:touch}
+.setup-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px}
+.setup-card h3{font-size:14px;font-weight:700;margin-bottom:4px}
+.setup-card p{font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:12px}
+.setup-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px}
+.step-num{width:20px;height:20px;border-radius:50%;background:var(--text);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:2px}
+.step-text{font-size:13px;color:var(--text2);line-height:1.65;flex:1}
+.step-text code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);border:1px solid var(--border)}
+.setup-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 13px;font-size:13px;color:var(--text);font-family:'DM Mono',monospace;outline:none;margin-bottom:10px}
+.setup-input:focus{border-color:var(--border2)}
+.setup-label{font-size:11px;color:var(--text3);margin-bottom:5px;display:block;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.setup-primary{width:100%;padding:13px;border-radius:12px;background:var(--text);border:none;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'Geist',sans-serif;margin-top:4px}
+.setup-secondary{width:100%;padding:12px;border-radius:12px;background:transparent;border:1px solid var(--border);color:var(--text2);font-size:13px;cursor:pointer;font-family:'Geist',sans-serif;margin-top:8px}
+
+
+/* RECENT SALES */
+.recent-sales{margin-top:12px}
+.recent-sales-title{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;padding:0 2px;display:flex;align-items:center;justify-content:space-between}
+.sale-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:6px}
+.sale-item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:4px}
+.sale-email-small{font-size:10px;font-weight:600;color:var(--blue);font-family:'DM Mono',monospace;word-break:break-all;flex:1}
+.sale-price{font-size:12px;font-weight:700;color:var(--green);flex-shrink:0}
+.sale-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sale-tag{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);font-weight:500}
+.sale-date{font-size:10px;color:var(--text3)}
+.slots-remaining{display:flex;gap:4px;margin-top:6px;align-items:center}
+.slots-remaining-label{font-size:10px;color:var(--text3);margin-right:2px}
+.action-sheet-btn{width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:12px;border:1px solid var(--border);cursor:pointer;font-family:'Geist',sans-serif;text-align:left;transition:opacity .15s}
+.action-sheet-btn:active{opacity:.75}
+.sell-acc-item{padding:10px 13px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:3px}
+.sell-acc-item:last-child{border-bottom:none}
+.sell-acc-item:active{background:var(--surface2)}
+.sell-acc-item.selected-acc{background:var(--green-bg)}
+.sell-acc-email{font-size:11px;font-weight:600;color:var(--blue);font-family:'DM Mono',monospace}
+.sell-acc-meta{display:flex;gap:5px;flex-wrap:wrap}
+.sell-acc-tag{font-size:10px;padding:1px 6px;border-radius:10px;background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.selected-badge{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--green-bg);border:1px solid var(--green-bd);border-radius:10px}
+.selected-badge-email{font-size:11px;font-weight:600;color:var(--green);font-family:'DM Mono',monospace;flex:1}
+.selected-badge-clear{font-size:16px;color:var(--green);cursor:pointer;line-height:1}
+;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:32px 20px;color:var(--text3);font-size:13px;line-height:1.7}
+
+/* SELL SLOT SELECTOR */
+.slot-selector{display:flex;gap:8px;flex-wrap:wrap}
+.slot-btn{padding:14px 10px;border-radius:12px;border:2px solid var(--border);background:var(--surface2);font-size:14px;font-weight:700;cursor:pointer;font-family:'Geist',sans-serif;transition:all .18s;display:flex;flex-direction:column;align-items:center;gap:3px;flex:1}
+.slot-btn span{font-size:11px;font-weight:500;color:var(--text3);margin-top:2px}
+.slot-btn.selected{background:var(--green);color:#fff;border-color:var(--green);transform:scale(1.04);box-shadow:0 4px 12px rgba(22,163,74,.3)}
+.slot-btn.sold-out{background:var(--red-bg);color:var(--red);cursor:not-allowed;border-color:var(--red-bd);opacity:.7}
+.divider-line{height:1px;background:var(--border);margin:4px 0}
+.curr-toggle{position:relative;display:flex;align-items:center;width:82px;height:28px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;cursor:pointer;user-select:none;overflow:hidden;transition:background .2s}
+.curr-knob{position:absolute;left:3px;top:3px;width:36px;height:20px;background:var(--text);border-radius:14px;transition:transform .22s cubic-bezier(.4,0,.2,1);z-index:1}
+.curr-toggle.usd .curr-knob{transform:translateX(40px)}
+.curr-label-left,.curr-label-right{position:absolute;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;z-index:2;transition:color .2s;pointer-events:none}
+.curr-label-left{left:10px;color:#fff}
+.curr-label-right{right:8px;color:var(--text3)}
+.curr-toggle.usd .curr-label-left{color:var(--text3)}
+.curr-toggle.usd .curr-label-right{color:#fff}
+
+/* ═══════════════════════════════════════════════════════════
+   DESKTOP RESPONSIVE — 768px+
+   ═══════════════════════════════════════════════════════════ */
+@media (min-width: 768px) {
+  html,body { overflow: auto; }
+
+  /* ── SETUP SCREEN ── */
+  #screen-setup { align-items: center; justify-content: center; min-height: 100vh; background: var(--bg); position: fixed; inset: 0; z-index: 500; overflow-y: auto; }
+  #screen-setup .nav { display: none; }
+  #screen-setup .setup-body {
+    width: 100%; max-width: 520px; background: var(--surface);
+    border-radius: 20px; border: 1px solid var(--border);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+    padding: 32px 36px 40px; gap: 18px;
+    overflow-y: visible; flex: none;
+  }
+
+  /* ── APP SCREEN ── */
+  #screen-app { flex-direction: column; height: 100vh; overflow: hidden; }
+
+  /* Nav bar */
+  #screen-app .nav { padding: 14px 40px; position: sticky; top: 0; z-index: 100; }
+  .nav-title { font-size: 20px; }
+
+  /* Stats bar — horizontal, centered strip */
+  .stats-bar {
+    display: flex; flex-direction: row;
+    grid-template-columns: unset;
+    width: 100%; background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    padding: 0; gap: 0;
+  }
+  .stats-bar > * { flex: 1; border-right: 1px solid var(--border); border-top: none !important; }
+  .stats-bar > *:last-child { border-right: none; }
+  .stat-chip { padding: 12px 8px; border-right: none; border-bottom: none; }
+  .stat-chip .val { font-size: 20px; }
+  .stat-chip .lbl { font-size: 9px; }
+
+  /* Body wrap — single scrollable column */
+  .app-body-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .main-content-area { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+
+  /* All panels scroll inside a centered container */
+  #panel-home, #panel-inventory, #panel-profit {
+    flex: 1; overflow-y: auto;
+  }
+
+  /* Home — centered single column with max-width */
+  #panel-home { flex-direction: column !important; align-items: center; background: var(--bg); }
+  #home-scroll {
+    width: 100%; max-width: 760px;
+    height: auto; overflow-y: visible;
+    border-right: none; flex-shrink: unset;
+  }
+  .result-area {
+    width: 100%; max-width: 760px;
+    padding: 0 0 32px;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    align-content: start; gap: 10px;
+    align-self: center;
+  }
+  .result-area > div:first-child { grid-column: 1 / -1; }
+  .result-area > .toast { grid-column: 1 / -1; }
+  #today-card { max-width: 760px; width: 100%; align-self: center; padding: 16px 0 0; }
+
+  /* Action menu — wider, centered */
+  .action-menu { padding: 20px 0; max-width: 760px; width: 100%; align-self: center; }
+  .action-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .action-btn { padding: 18px 16px; }
+  .action-title { font-size: 14px; }
+
+  /* Inventory — centered grid */
+  #panel-inventory { flex-direction: column; align-items: center; background: var(--bg); }
+  .search-bar { width: 100%; max-width: 900px; padding: 14px 0; align-self: center; background: transparent; border: none; }
+  .search-bar input { border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+  .inv-list {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 10px; padding: 0 0 32px;
+    width: 100%; max-width: 900px;
+    align-content: start; align-self: center;
+  }
+
+  /* Profit panel */
+  #panel-profit { align-items: center; background: var(--bg); }
+  .profit-body { padding: 24px 0 32px; width: 100%; max-width: 760px; }
+  .profit-grid { grid-template-columns: repeat(4, 1fr); }
+
+  /* Bottom nav becomes horizontal tab bar */
+  .bottom-nav {
+    order: -1; position: relative; z-index: 10;
+    border-top: none; border-bottom: 1px solid var(--border);
+    padding: 0 40px; gap: 0;
+    justify-content: flex-start; background: var(--surface);
+  }
+  .nav-tab {
+    flex: none; flex-direction: row; gap: 6px;
+    padding: 10px 20px; border-bottom: 2px solid transparent; border-radius: 0;
+  }
+  .nav-tab.active { border-bottom-color: var(--text); }
+  .nav-tab svg { width: 16px; height: 16px; }
+  .nav-tab span { font-size: 12px; letter-spacing: .03em; }
+  .nav-tab.active::after { display: none; }
+  .bottom-nav + div { display: none; }
+  #screen-app::after {
+    content: '© 2026 Msaka';
+    position: fixed; bottom: 10px; right: 20px;
+    font-size: 10px; color: var(--text3);
+    font-family: 'DM Mono', monospace; font-weight: 600;
+    pointer-events: none; z-index: 5;
+  }
+
+  /* Modals — centered dialog */
+  .modal-overlay { align-items: center; justify-content: center; }
+  .modal {
+    border-radius: 16px; width: 500px; max-width: 90vw;
+    max-height: 85vh; transform: scale(0.96);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  }
+  .modal-overlay.open .modal { transform: scale(1); }
+  .modal-handle { display: none; }
+  .modal-actions { flex-direction: row-reverse; }
+  .modal-actions .btn-primary { flex: 1; }
+  .modal-actions .btn-secondary { flex: none; width: auto; padding: 14px 24px; }
+  #modal-action-sheet .modal { width: 420px; }
+  .slot-selector { display: flex; gap: 10px; }
+  .slot-btn { flex: 1; }
+}
+
+@media (min-width: 1100px) {
+  #home-scroll { max-width: 860px; }
+  .result-area { max-width: 860px; grid-template-columns: 1fr 1fr 1fr; }
+  #today-card { max-width: 860px; }
+  .action-menu { max-width: 860px; }
+  .inv-list { max-width: 1100px; grid-template-columns: repeat(4, 1fr); }
+  .profit-body { max-width: 860px; }
+  #screen-app .nav { padding: 14px 60px; }
+  .bottom-nav { padding: 0 60px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ SETUP ══════════════════════════════════════════════════ -->
+<div class="screen active" id="screen-setup">
+  <div class="nav"><div><div class="nav-title">PSN <span>Agent</span></div><div class="nav-sub">Setup</div></div></div>
+  <div class="setup-body">
+    <div style="text-align:center;padding:10px 0 4px">
+      <div style="font-size:38px;margin-bottom:8px">🎮</div>
+      <div style="font-size:21px;font-weight:800;letter-spacing:-.03em">PSN Business Organizer</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:6px;line-height:1.7">TZS · USD · PS4 &amp; PS5 Slots · Backup Codes<br>Claude AI · Google Sheets</div>
+    </div>
+    <div class="setup-card" style="border-color:#ddd6fe">
+      <h3 style="color:var(--ai)">Claude AI Key (optional)</h3>
+      <p>For the Ask AI feature. Get a free API key from Anthropic.</p>
+      <div class="setup-step"><div class="step-num">1</div><div class="step-text">Go to <code>console.anthropic.com</code> → sign in</div></div>
+      <div class="setup-step"><div class="step-num">2</div><div class="step-text">Click <code>API Keys</code> → Create Key → copy</div></div>
+      <label class="setup-label">Claude API Key (optional)</label>
+      <input class="setup-input" id="gemini-key" type="password" placeholder="sk-ant-..." autocomplete="off"/>
+    </div>
+    <div class="setup-card">
+      <h3>Google Sheets URL</h3>
+      <p>Your account data lives in your Google Sheet. Deploy Code.gs first.</p>
+      <div class="setup-step"><div class="step-num">1</div><div class="step-text">Open your Sheet → <code>Extensions → Apps Script</code> → paste Code.gs → Save</div></div>
+      <div class="setup-step"><div class="step-num">2</div><div class="step-text"><code>Deploy → New Deployment → Web App</code> → Execute as Me, Access Anyone → Deploy → copy URL</div></div>
+      <label class="setup-label">Web App URL <span style="color:var(--red)">*</span></label>
+      <input class="setup-input" id="sheet-url" placeholder="https://script.google.com/macros/s/.../exec"/>
+      <button class="setup-primary" onclick="connectApp()">Connect & Launch →</button>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:14px">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:11px;color:var(--text3)">or</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+      <button class="setup-secondary" onclick="launchDemo()" style="margin-top:10px;border-color:var(--ai);color:var(--ai);font-weight:600">🎮 Try Demo Mode</button>
+      <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:6px;line-height:1.6">No setup needed · Sample data · Nothing is saved</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ════════════════════════════════════════════════ -->
+<div class="screen" id="screen-app">
+  <div class="nav">
+    <div><div class="nav-title">PSN <span>Agent</span></div><div class="nav-sub"><div class="live-dot"></div><span id="conn-label">Connected</span></div></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="curr-toggle" id="curr-toggle" onclick="toggleCurrency()">
+        <div class="curr-knob" id="curr-knob"></div>
+        <span class="curr-label-left" id="curr-left">TZS</span>
+        <span class="curr-label-right" id="curr-right">USD</span>
+      </div>
+      <button class="icon-btn" id="dark-btn" onclick="toggleDark()" title="Toggle dark mode" style="font-size:16px;border:none;cursor:pointer">🌙</button>
+      <button class="icon-btn" onclick="exportCSV()" title="Export CSV" style="font-size:16px;border:none;cursor:pointer">📥</button>
+      <div class="icon-btn" onclick="showScreen('screen-setup')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      </div>
+    </div>
+  </div>
+  <div class="app-body-wrap">
+  <!-- DEMO BANNER -->
+  <div id="demo-banner" style="display:none;background:var(--amber-bg);border-bottom:2px solid var(--amber-bd);padding:8px 16px;align-items:center;justify-content:space-between;flex-shrink:0;gap:10px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:16px">🎮</span>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--amber)">Demo Mode</div>
+        <div style="font-size:10px;color:var(--text3)">Sample data · Changes are not saved</div>
+      </div>
+    </div>
+    <button onclick="exitDemo()" style="padding:6px 14px;border-radius:10px;background:var(--amber);border:none;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Geist',sans-serif;flex-shrink:0">Exit Demo</button>
+  </div>
+  <div class="stats-bar">
+    <div class="stat-chip" style="border-top:3px solid var(--text3)"><div class="val skel skel-line" id="s-total" style="width:28px;margin:auto"> </div><div class="lbl">Total</div></div>
+    <div class="stat-chip" style="border-top:3px solid var(--green)"><div class="val skel skel-line" style="color:var(--green);width:28px;margin:auto" id="s-avail"> </div><div class="lbl">Avail</div></div>
+    <div class="stat-chip" style="border-top:3px solid var(--red)"><div class="val skel skel-line" style="color:var(--red);width:28px;margin:auto" id="s-sold"> </div><div class="lbl">Sold</div></div>
+    <div class="stat-chip" style="border-top:3px solid var(--blue)"><div class="val skel skel-line" style="color:var(--blue);width:36px;margin:auto" id="s-profit"> </div><div class="lbl">Profit</div></div>
+  </div>
+  <div class="main-content-area">
+
+  <!-- HOME -->
+  <div id="panel-home" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <!-- Actions scroll area -->
+    <div class="ptr-wrap" id="ptr-home-wrap">
+      <div class="ptr-indicator" id="ptr-home-ind"><span class="ptr-arrow" id="ptr-home-arrow">↓</span><span class="ptr-spinner"></span><span id="ptr-home-text">Pull to refresh</span></div>
+    <div class="main-body" id="home-scroll">
+      <div class="action-menu">
+        <div class="section-label">Manage</div>
+        <div class="action-row">
+          <div class="action-btn" onclick="openModal('add')">
+            <div class="action-num" style="background:var(--blue-bg);color:var(--blue);font-size:17px">➕</div>
+            <div><div class="action-title">Add Account</div><div class="action-desc">New PSN account</div></div>
+          </div>
+          <div class="action-btn" onclick="openModal('sell')">
+            <div class="action-num" style="background:var(--green-bg);color:var(--green);font-size:17px">💰</div>
+            <div><div class="action-title">Sell Slot</div><div class="action-desc">PS4 or PS5 slot</div></div>
+          </div>
+          <div class="action-btn" onclick="openModal('update')">
+            <div class="action-num" style="background:var(--amber-bg);color:var(--amber);font-size:17px">✏️</div>
+            <div><div class="action-title">Update</div><div class="action-desc">Edit any field</div></div>
+          </div>
+          <div class="action-btn" onclick="openModal('delete')">
+            <div class="action-num" style="background:var(--red-bg);color:var(--red);font-size:17px">🗑️</div>
+            <div><div class="action-title">Delete</div><div class="action-desc">Remove account</div></div>
+          </div>
+        </div>
+        <div class="section-label" style="margin-top:4px;display:flex;align-items:center;justify-content:space-between">View & Insights <span id="low-stock-badge" style="display:none;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd)">⚠ Low Stock</span></div>
+        <div class="action-row">
+          <div class="action-btn" onclick="showQuickStats()">
+            <div class="action-num" style="background:#f0fdf4;color:var(--green);font-size:17px">⚡</div>
+            <div><div class="action-title">Quick Stats</div><div class="action-desc">Today, slots & profit</div></div>
+          </div>
+          <div class="action-btn" onclick="showAllAccounts()">
+            <div class="action-num" style="background:var(--surface2);color:var(--text2);font-size:17px">📋</div>
+            <div><div class="action-title">View All</div><div class="action-desc">Full inventory</div></div>
+          </div>
+          <div class="action-btn full" onclick="openModal('ask')">
+            <div class="action-num" style="background:#f5f3ff;color:var(--ai);font-size:17px">🤖</div>
+            <div><div class="action-title">Ask AI</div><div class="action-desc">Any business question answered by Claude</div></div>
+          </div>
+
+        </div>
+      </div>
+      <div class="result-area" id="result-area"></div>
+    </div>
+    </div><!-- /home-scroll -->
+    </div><!-- /ptr-home-wrap -->
+
+    <div id="today-card" style="padding:0 16px 8px;display:none;flex-shrink:0">
+      <div style="background:linear-gradient(135deg,var(--green-bg),var(--blue-bg));border:1px solid var(--green-bd);border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">Today</div>
+          <div style="font-size:22px;font-weight:800;color:var(--text);letter-spacing:-.02em" id="today-slots">0 slots</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px" id="today-revenue">No sales yet</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">Available</div>
+          <div style="font-size:22px;font-weight:800;color:var(--text);letter-spacing:-.02em" id="today-avail">—</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">slots free</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- ══ MODAL: VIEW ALL ═════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-viewall" onclick="closeOut(event,'modal-viewall')">
+ <div class="modal" style="border-radius:20px 20px 0 0;max-height:92vh;display:flex;flex-direction:column">
+  <div class="modal-handle"></div>
+  <div class="modal-header" style="flex-shrink:0">
+    <div style="display:flex;flex-direction:column;gap:2px;flex:1">
+      <div class="modal-title">All Accounts</div>
+      <div id="viewall-count" style="font-size:11px;color:var(--text3)">Loading…</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="viewall-search" class="field-input" placeholder="Search…" oninput="filterViewAll(this.value)" style="width:140px;padding:8px 12px;font-size:13px"/>
+      <div class="modal-close" onclick="closeModal('modal-viewall')">×</div>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 32px;display:flex;flex-direction:column;gap:8px" id="viewall-list">
+    <div class="skel-card"><div class="skel skel-line" style="width:60%"></div><div class="skel skel-line" style="width:40%"></div></div>
+    <div class="skel-card"><div class="skel skel-line" style="width:70%"></div><div class="skel skel-line" style="width:45%"></div></div>
+    <div class="skel-card"><div class="skel skel-line" style="width:55%"></div><div class="skel skel-line" style="width:35%"></div></div>
+  </div>
+ </div>
+</div>
+
+  <!-- INVENTORY -->
+  <div id="panel-inventory" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="search-bar"><input class="search-input" placeholder="Search email, game, console, region…" oninput="filterInv(this.value)"></div>
+    <div class="ptr-wrap" id="ptr-inv-wrap">
+      <div class="ptr-indicator" id="ptr-inv-ind"><span class="ptr-arrow" id="ptr-inv-arrow">↓</span><span class="ptr-spinner"></span><span id="ptr-inv-text">Pull to refresh</span></div>
+      <div class="inv-list" id="inv-list"></div>
+    </div>
+  </div>
+
+  <!-- PROFITS -->
+  <div id="panel-profit" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="profit-body" id="profit-body"></div>
+  </div>
+
+  </div>
+
+  </div><!-- /main-content-area -->
+  </div><!-- /app-body-wrap -->
+  <div class="bottom-nav">
+    <button class="nav-tab active" id="tab-home" onclick="switchTab('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="nav-tab" id="tab-inventory" onclick="switchTab('inventory')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <span>Inventory</span>
+    </button>
+    <button class="nav-tab" id="tab-profit" onclick="switchTab('profit')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <span>Profits</span>
+    </button>
+  </div>
+  <div style="text-align:center;padding:5px 0 2px;font-size:10px;color:var(--text3);letter-spacing:.06em;background:var(--surface);font-family:'DM Mono',monospace">© 2026 <span style="font-weight:700;color:var(--text2);letter-spacing:.02em">Msaka</span></div>
+</div>
+
+<!-- ══ MODAL: ADD ACCOUNT ══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-add" onclick="closeOut(event,'modal-add')">
+ <div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">Add Account</div><div class="modal-close" onclick="closeModal('modal-add')">×</div></div>
+  <div class="modal-body">
+    <div class="field-group">
+      <label class="field-label">Email <span class="field-req">*</span></label>
+      <input class="field-input" id="a-email" type="email" placeholder="gamerzone@gmail.com"/>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Password <span class="field-req">*</span></label>
+      <input class="field-input" id="a-pass" placeholder="abc123"/>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Console Type <span class="field-req">*</span></label>
+      <div class="pill-group">
+        <div class="pill ps5" onclick="pickOne(this,'add-console')">PS5</div>
+        <div class="pill ps4" onclick="pickOne(this,'add-console')">PS4</div>
+        <div class="pill" onclick="pickOne(this,'add-console')">Both PS4 &amp; PS5</div>
+      </div>
+      <input type="hidden" id="add-console"/>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Region <span class="field-req">*</span></label>
+      <select class="field-input select-input" id="a-region">
+        <option value="">Select region</option>
+        <option>R1</option><option>R2</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Games <span class="field-req">*</span></label>
+      <div class="pill-group" id="add-games">
+        <div class="pill" onclick="togglePill(this)">FIFA 24</div>
+        <div class="pill" onclick="togglePill(this)">EA FC 25</div>
+        <div class="pill" onclick="togglePill(this)">GTA V</div>
+        <div class="pill" onclick="togglePill(this)">Spider-Man</div>
+        <div class="pill" onclick="togglePill(this)">Spider-Man 2</div>
+        <div class="pill" onclick="togglePill(this)">NBA 2K24</div>
+        <div class="pill" onclick="togglePill(this)">NBA 2K25</div>
+        <div class="pill" onclick="togglePill(this)">Call of Duty</div>
+        <div class="pill" onclick="togglePill(this)">God of War</div>
+        <div class="pill" onclick="togglePill(this)">Mortal Kombat</div>
+        <div class="pill" onclick="togglePill(this)">eFootball</div>
+        <div class="pill" onclick="togglePill(this)">UFC</div>
+      </div>
+      <input class="field-input" id="a-games-custom" placeholder="Other games (comma separated)" style="margin-top:8px"/>
+    </div>
+
+    <div class="divider-line"></div>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Purchase Cost <span class="currency-label">(TZS)</span></div>
+
+    <div class="field-group">
+      <label class="field-label">Account Cost <span class="currency-label">(TZS)</span> <span class="field-req">*</span></label>
+      <input class="field-input" id="a-cost" type="number" placeholder="How much you paid for this account" min="0"/>
+    </div>
+    <input type="hidden" id="a-target" value="0"/>
+    <input type="hidden" id="a-sell" value="0"/>
+
+    <div class="divider-line"></div>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Backup Codes <span style="color:var(--red)">* (min 3)</span></div>
+    <div class="info-box">These codes are required. Add at least 3 backup/recovery codes for this account.</div>
+    <div class="backup-row"><div class="backup-num">1.</div><input class="field-input" id="a-code1" placeholder="Backup code 1" style="flex:1"/></div>
+    <div class="backup-row"><div class="backup-num">2.</div><input class="field-input" id="a-code2" placeholder="Backup code 2" style="flex:1"/></div>
+    <div class="backup-row"><div class="backup-num">3.</div><input class="field-input" id="a-code3" placeholder="Backup code 3" style="flex:1"/></div>
+
+    <div class="field-group">
+      <label class="field-label">Notes (optional)</label>
+      <input class="field-input" id="a-notes" placeholder="Any extra info…"/>
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn-primary" id="btn-add" onclick="if(navigator.vibrate)navigator.vibrate(15);submitAdd()">Add Account</button>
+    <button class="btn-secondary" onclick="closeModal('modal-add')">Cancel</button>
+  </div>
+ </div>
+</div>
+
+<!-- ══ MODAL: SELL SLOT ════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-sell" onclick="closeOut(event,'modal-sell')">
+ <div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">Sell a Slot</div><div class="modal-close" onclick="closeModal('modal-sell')">×</div></div>
+  <div class="modal-body">
+    <div class="field-group">
+      <label class="field-label">Search Account <span class="field-req">*</span></label>
+      <input class="field-input" id="sell-search" placeholder="Type email, game, console, region…" oninput="filterSellAccounts(this.value)" autocomplete="off" style="margin-bottom:6px"/>
+      <div id="sell-account-list" style="max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:none"></div>
+      <input type="hidden" id="sell-email"/>
+      <div id="sell-selected-badge" style="display:none;margin-top:6px"></div>
+    </div>
+    <div id="sell-console-section" style="display:none">
+      <div class="field-group">
+        <label class="field-label">Console <span class="field-req">*</span></label>
+        <div class="pill-group" id="sell-console-pills"></div>
+        <input type="hidden" id="sell-console"/>
+      </div>
+      <div class="field-group" id="sell-slot-section" style="display:none">
+        <label class="field-label">Select Slot <span class="field-req">*</span></label>
+        <div class="slot-selector" id="sell-slots"></div>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">3 slots available per console. Green = free, Red = sold.</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Selling Price <span class="currency-label">(TZS)</span> <span class="field-req">*</span></label>
+        <input class="field-input" id="sell-price" type="number" placeholder="Price you sold this slot for" style="font-size:18px;font-weight:600" oninput="updateSellHint(this.value)"/>
+        <div id="sell-price-hint" style="font-size:11px;color:var(--text3);margin-top:3px;height:16px"></div>
+      </div>
+      <div id="sell-account-preview"></div>
+    </div>
+    <!-- RECENT SALES -->
+    <div class="recent-sales" id="recent-sales-section" style="display:none;padding:0 18px">
+      <div class="recent-sales-title">
+        <span>🕐 Last 10 Sales</span>
+        <span id="recent-sales-count" style="font-weight:400;color:var(--text3)"></span>
+      </div>
+      <div id="recent-sales-list"></div>
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn-primary" style="background:var(--green)" id="btn-sell" onclick="if(navigator.vibrate)navigator.vibrate(15);submitSell()">Confirm Sale ✓</button>
+    <button class="btn-secondary" onclick="closeModal('modal-sell')">Cancel</button>
+  </div>
+ </div>
+</div>
+
+<!-- ══ MODAL: UPDATE ══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-update" onclick="closeOut(event,'modal-update')">
+ <div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">Update Account</div><div class="modal-close" onclick="closeModal('modal-update')">×</div></div>
+  <div class="modal-body">
+    <div class="field-group">
+      <label class="field-label">Search Account <span class="field-req">*</span></label>
+      <input class="field-input" id="upd-search" placeholder="Type email, game, console, region…" oninput="filterModalAccounts(this.value,'upd')" autocomplete="off" style="margin-bottom:6px"/>
+      <div id="upd-account-list" style="max-height:160px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:none"></div>
+      <input type="hidden" id="upd-email"/>
+      <div id="upd-selected-badge" style="display:none;margin-top:6px"></div>
+    </div>
+    <div id="upd-fields" style="display:none;flex-direction:column;gap:12px">
+      <div class="field-group"><label class="field-label">New Password</label><input class="field-input" id="upd-pass" placeholder="Leave blank to keep"/></div>
+      <div class="field-group"><label class="field-label">New Region</label>
+        <select class="field-input select-input" id="upd-region"><option value="">Keep current</option><option>R1</option><option>R2</option></select>
+      </div>
+      <div class="field-group"><label class="field-label">Account Cost <span class="currency-label">(TZS)</span></label><input class="field-input" id="upd-cost" type="number" placeholder="Leave blank to keep"/></div>
+      <input type="hidden" id="upd-target" value=""/>
+      <input type="hidden" id="upd-sell" value=""/>
+      <div class="field-group"><label class="field-label">Notes</label><input class="field-input" id="upd-notes" placeholder="Leave blank to keep"/></div>
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn-primary" style="background:var(--amber)" id="btn-update" onclick="submitUpdate()">Save Changes</button>
+    <button class="btn-secondary" onclick="closeModal('modal-update')">Cancel</button>
+  </div>
+ </div>
+</div>
+
+<!-- ══ MODAL: DELETE ══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-delete" onclick="closeOut(event,'modal-delete')">
+ <div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">Delete Account</div><div class="modal-close" onclick="closeModal('modal-delete')">×</div></div>
+  <div class="modal-body">
+    <div class="field-group">
+      <label class="field-label">Search Account <span class="field-req">*</span></label>
+      <input class="field-input" id="del-search" placeholder="Type email, game, console, region…" oninput="filterModalAccounts(this.value,'del')" autocomplete="off" style="margin-bottom:6px"/>
+      <div id="del-account-list" style="max-height:160px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;background:var(--surface);display:none"></div>
+      <input type="hidden" id="del-email"/>
+      <div id="del-selected-badge" style="display:none;margin-top:6px"></div>
+    </div>
+    <div id="del-confirm-box" style="display:none;margin-top:4px">
+      <div class="toast error" style="margin-bottom:10px">⚠ This will permanently delete <strong id="del-confirm-email" style="font-family:'DM Mono',monospace"></strong> and all its data. This cannot be undone.</div>
+    </div>
+    <div class="toast error" id="del-warning" style="margin-top:4px">This permanently removes the account from your database.</div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn-primary" style="background:var(--red)" id="btn-delete" onclick="submitDelete()">Delete Account</button>
+    <button class="btn-secondary" onclick="closeModal('modal-delete')">Cancel</button>
+  </div>
+ </div>
+</div>
+
+<!-- ══ MODAL: ACCOUNT ACTION SHEET ════════════════════════════ -->
+<div class="modal-overlay" id="modal-action-sheet" onclick="closeOut(event,'modal-action-sheet')">
+ <div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-header">
+    <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0">
+      <div class="modal-title" id="action-sheet-email" style="font-size:13px;font-family:'DM Mono',monospace;color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+      <div id="action-sheet-meta" style="font-size:11px;color:var(--text3)"></div>
+    </div>
+    <div class="modal-close" onclick="closeModal('modal-action-sheet')">×</div>
+  </div>
+  <div class="modal-body" style="gap:8px">
+    <button class="action-sheet-btn" id="as-sell-btn" onclick="actionSheetSell()" style="background:var(--green-bg);border-color:var(--green-bd)">
+      <span style="font-size:20px">💰</span>
+      <div><div style="font-size:14px;font-weight:600;color:var(--green)">Sell a Slot</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Choose PS4 or PS5 · select slot</div></div>
+    </button>
+    <button class="action-sheet-btn" onclick="actionSheetUpdate()" style="background:var(--amber-bg);border-color:var(--amber-bd)">
+      <span style="font-size:20px">✏️</span>
+      <div><div style="font-size:14px;font-weight:600;color:var(--amber)">Update Account</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Edit password, price, region, notes</div></div>
+    </button>
+    <button class="action-sheet-btn" onclick="actionSheetDelete()" style="background:var(--red-bg);border-color:var(--red-bd)">
+      <span style="font-size:20px">🗑️</span>
+      <div><div style="font-size:14px;font-weight:600;color:var(--red)">Delete Account</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Permanently remove from database</div></div>
+    </button>
+  </div>
+  <div style="padding:0 18px 4px">
+    <button class="btn-secondary" onclick="closeModal('modal-action-sheet')">Cancel</button>
+  </div>
+ </div>
+</div>
+
+<!-- ══ MODAL: SEARCH ══════════════════════════════════════════ -->
+<!-- ══ MODAL: QUICK STATS ══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-search" onclick="closeOut(event,'modal-search')">
+ <div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><div class="modal-title">⚡ Quick Stats</div><div class="modal-close" onclick="closeModal('modal-search')">×</div></div>
+  <div class="modal-body" id="quick-stats-body">
+    <div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Loading…</div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn-secondary" onclick="closeModal('modal-search')">Close</button>
+  </div>
+ </div>
+</div>
+
+<!-- ══ MODAL: ASK AI ══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-ask" onclick="closeOut(event,'modal-ask')">
+ <div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-header">
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <div class="modal-title" style="color:var(--ai)">✦ Claude AI</div>
+      <div style="font-size:10px;color:var(--text3)">Ask questions or give commands in plain language</div>
+    </div>
+    <div class="modal-close" onclick="closeModal('modal-ask')">×</div>
+  </div>
+  <div class="modal-body">
+    <!-- Chat history -->
+    <div id="ask-chat" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;min-height:60px"></div>
+    <!-- Quick suggestions -->
+    <div id="ask-suggestions" style="display:flex;flex-wrap:wrap;gap:6px">
+      <div class="pill" onclick="setQ(this,'What is my total profit?')">💰 Total profit?</div>
+      <div class="pill" onclick="setQ(this,'How many slots are available?')">📦 Slots left?</div>
+      <div class="pill" onclick="setQ(this,'Which game sells the most?')">🎮 Top game?</div>
+      <div class="pill" onclick="setQ(this,'Add account test@psn.com password PS5 R1 FIFA 25 cost 20000')">➕ Add account</div>
+      <div class="pill" onclick="setQ(this,'Sell slot 1 PS5 on test@psn.com for 30000')">💸 Sell slot</div>
+      <div class="pill" onclick="setQ(this,'Delete account test@psn.com')">🗑️ Delete</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-end">
+      <textarea class="field-input" id="ask-q" rows="2" placeholder="Ask anything or give a command… e.g. sell slot 1 PS5 on abc@gmail.com for 30000" style="resize:none;line-height:1.5;flex:1"></textarea>
+      <button id="btn-ask" onclick="submitAsk()" style="background:var(--ai);border:none;color:#fff;border-radius:12px;padding:13px 16px;font-size:18px;cursor:pointer;flex-shrink:0;font-family:'Geist',sans-serif">↑</button>
+    </div>
+  </div>
+ </div>
+</div>
+
+<script>
+// ── CONFIG ───────────────────────────────────────────────────
+let GEMINI_KEY = localStorage.getItem('psn_gemini_key') || '';
+let SHEET_URL  = localStorage.getItem('psn_sheet_url')  || '';
+let DEMO_MODE  = false;
+let allAccounts = [];
+let CURRENCY = localStorage.getItem('psn_currency') || 'TZS';
+
+const CURRENCIES = {
+  TZS: { code:'TZS', symbol:'TZS', name:'Tanzanian Shilling', decimals:0, rate:1 },
+  USD: { code:'USD', symbol:'$',   name:'US Dollar',           decimals:2, rate:1/2600 },
+};
+// 1 USD ≈ 2600 TZS (update rate here if needed)
+
+function fmt(n) {
+  const c = CURRENCIES[CURRENCY] || CURRENCIES.TZS;
+  const num = Number(n||0) * c.rate;
+  if(c.decimals===0) return c.symbol + ' ' + Math.round(num).toLocaleString();
+  return c.symbol + ' ' + num.toFixed(c.decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function setCurrency(code) {
+  CURRENCY = code;
+  localStorage.setItem('psn_currency', code);
+  const toggle = document.getElementById('curr-toggle');
+  if(toggle) toggle.classList.toggle('usd', code==='USD');
+  document.querySelectorAll('.currency-label').forEach(el => {
+    el.textContent = '(' + code + ')';
+  });
+  refreshStats();
+  // Re-render viewall modal if open
+  if(document.getElementById('modal-viewall').classList.contains('open')) {
+    renderViewAll(viewAllAccounts);
+  }
+  // Re-render inventory if visible
+  if(document.getElementById('panel-inventory') &&
+     document.getElementById('panel-inventory').style.display !== 'none') loadInventory();
+  // Re-render profit tab if visible
+  if(document.getElementById('panel-profit') &&
+     document.getElementById('panel-profit').style.display !== 'none') loadProfitTab();
+}
+
+function toggleCurrency() {
+  setCurrency(CURRENCY==='TZS' ? 'USD' : 'TZS');
+}
+
+// ── DEMO DATA ─────────────────────────────────────────────────
+let demoDB = [
+  {email:'psstore22@gmail.com', password:'pass1234', console:'PS5', region:'R1',
+   games:['FIFA 24','GTA V'], costTZS:15000, targetSellTZS:30000, actualSellTZS:28000,
+   ps5Slots:[false,false,false], ps4Slots:[false,false,false],
+   backupCode1:'ABCD-1234', backupCode2:'EFGH-5678', backupCode3:'IJKL-9012',
+   status:'Available', dateAdded:'2025-01-01', notes:''},
+  {email:'gamerhub11@gmail.com', password:'gamer999', console:'Both PS4 & PS5', region:'R2',
+   games:['FIFA 24'], costTZS:12000, targetSellTZS:25000, actualSellTZS:24000,
+   ps5Slots:[true,false,false], ps4Slots:[false,false,false],
+   backupCode1:'MNOP-3456', backupCode2:'QRST-7890', backupCode3:'UVWX-1234',
+   status:'Partial', dateAdded:'2025-01-02', dateSold:'',
+   slotHistory:[{console:'PS5',slot:1,price:24000,date:'2025-01-05'}],
+   notes:''},
+  {email:'playzone55@gmail.com', password:'zone2024', console:'PS4', region:'R1',
+   games:['Spider-Man','GTA V'], costTZS:18000, targetSellTZS:35000, actualSellTZS:34000,
+   ps5Slots:[false,false,false], ps4Slots:[true,true,true],
+   backupCode1:'YZAB-5678', backupCode2:'CDEF-9012', backupCode3:'GHIJ-3456',
+   status:'Sold', dateAdded:'2025-01-03', dateSold:'2025-01-10',
+   slotHistory:[{console:'PS4',slot:1,price:34000,date:'2025-01-08'},{console:'PS4',slot:2,price:34000,date:'2025-01-09'},{console:'PS4',slot:3,price:34000,date:'2025-01-10'}],
+   notes:''},
+  {email:'psking77@gmail.com', password:'king7777', console:'Both PS4 & PS5', region:'R1',
+   games:['NBA 2K24','FIFA 24'], costTZS:14000, targetSellTZS:28000, actualSellTZS:27000,
+   ps5Slots:[false,false,false], ps4Slots:[false,false,false],
+   backupCode1:'KLMN-7890', backupCode2:'OPQR-1234', backupCode3:'STUV-5678',
+   status:'Available', dateAdded:'2025-01-04', notes:''},
+];
+
+// ── SHEET API ─────────────────────────────────────────────────
+async function sheetAPI(action, data={}) {
+  if(DEMO_MODE) return demoAction(action, data);
+  try {
+    const payload = JSON.stringify({action, ...data});
+    // Try POST first
+    const res = await fetch(SHEET_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: payload,
+      redirect: 'follow',
+      mode: 'cors',
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    try { return JSON.parse(text); }
+    catch(e) {
+      console.error('Bad JSON:', text);
+      return {error: 'Bad response. Re-check deployment URL.'};
+    }
+  } catch(e) {
+    // Fallback: send as GET with payload param (works around some CORS issues)
+    try {
+      const payload = encodeURIComponent(JSON.stringify({action, ...data}));
+      const res = await fetch(SHEET_URL + '?payload=' + payload, {redirect:'follow'});
+      const text = await res.text();
+      return JSON.parse(text);
+    } catch(e2) {
+      console.error('sheetAPI fallback error:', e2);
+      return {error: 'Connection failed: ' + e2.message};
+    }
+  }
+}
+
+function demoAction(action, data) {
+  if (action==='getAll') return {success:true, accounts:JSON.parse(JSON.stringify(demoDB))};
+  if (action==='getRecentSales') {
+    const sales=[];
+    demoDB.forEach(a=>{
+      (a.slotHistory||[]).forEach(h=>{
+        sales.push({email:a.email,console:h.console,slot:h.slot,price:h.price,date:h.date,
+          games:a.games,region:a.region,
+          ps5Slots:a.ps5Slots,ps4Slots:a.ps4Slots,accountConsole:a.console});
+      });
+    });
+    sales.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    return {success:true, sales:sales.slice(0,10)};
+  }
+  if (action==='getStats') {
+    const sold=demoDB.filter(a=>a.status==='Sold');
+    const avail=demoDB.filter(a=>a.status==='Available');
+    const gc={};demoDB.forEach(a=>(a.games||[]).forEach(g=>{gc[g]=(gc[g]||0)+1}));
+    const totalSlotsSold=demoDB.reduce((s,a)=>{
+      const p5=(a.ps5Slots||[]).filter(Boolean).length;
+      const p4=(a.ps4Slots||[]).filter(Boolean).length;
+      return s+p5+p4;
+    },0);
+    const totalProfit=demoDB.reduce((s,a)=>{
+      const slotsSold=(a.ps5Slots||[]).filter(Boolean).length+(a.ps4Slots||[]).filter(Boolean).length;
+      return s+(slotsSold*(a.actualSellTZS||0))-(a.costTZS||0);
+    },0);
+    return {success:true,stats:{total:demoDB.length,available:avail.length,sold:sold.length,
+      totalProfit:Math.round(totalProfit),totalInvested:demoDB.reduce((s,a)=>s+(a.costTZS||0),0),
+      totalSlotsSold,topGames:Object.entries(gc).sort((a,b)=>b[1]-a[1]).slice(0,8)}};
+  }
+  if (action==='add') {
+    const a=data.account;
+    if(demoDB.find(x=>x.email.toLowerCase()===a.email.toLowerCase())) return {error:'Already exists: '+a.email};
+    demoDB.push({...a,ps5Slots:[false,false,false],ps4Slots:[false,false,false],status:'Available',dateAdded:new Date().toLocaleDateString('en-GB'),dateSold:'',slotHistory:[]});
+    return {success:true,message:'Added: '+a.email};
+  }
+  if (action==='sellSlot') {
+    const i=demoDB.findIndex(a=>a.email.toLowerCase()===data.email.toLowerCase());
+    if(i<0) return {error:'Not found'};
+    const slotKey = data.console==='PS5' ? 'ps5Slots' : 'ps4Slots';
+    const slotIdx = parseInt(data.slot)-1;
+    if(demoDB[i][slotKey][slotIdx]) return {error:'Slot '+data.slot+' is already sold'};
+    demoDB[i][slotKey][slotIdx]=true;
+    demoDB[i].actualSellTZS=data.sellPrice||demoDB[i].actualSellTZS;
+    const now=new Date().toLocaleDateString('en-GB');
+    if(!demoDB[i].slotHistory) demoDB[i].slotHistory=[];
+    demoDB[i].slotHistory.push({console:data.console,slot:parseInt(data.slot),price:data.sellPrice,date:now});
+    const allSold=(demoDB[i].ps5Slots||[]).every(Boolean)&&(demoDB[i].ps4Slots||[]).every(Boolean);
+    const anySold=(demoDB[i].ps5Slots||[]).some(Boolean)||(demoDB[i].ps4Slots||[]).some(Boolean);
+    demoDB[i].status = allSold?'Sold':anySold?'Partial':'Available';
+    if(allSold) demoDB[i].dateSold=now;
+    return {success:true,message:`Slot ${data.slot} (${data.console}) sold for ${fmt(data.sellPrice)}`};
+  }
+  if (action==='update') {
+    const i=demoDB.findIndex(a=>a.email.toLowerCase()===data.email.toLowerCase());
+    if(i<0) return {error:'Not found'};
+    Object.assign(demoDB[i],data.fields);
+    return {success:true,message:'Updated: '+data.email};
+  }
+  if (action==='delete') {
+    const i=demoDB.findIndex(a=>a.email.toLowerCase()===data.email.toLowerCase());
+    if(i<0) return {error:'Not found'};
+    const em=demoDB[i].email; demoDB.splice(i,1);
+    return {success:true,message:'Deleted: '+em};
+  }
+  return {error:'Unknown action'};
+}
+
+// ── CLAUDE AI (via Apps Script proxy) ────────────────────────
+let aiConversation = []; // full message history
+
+async function askClaude(accounts) {
+  const c=CURRENCIES[CURRENCY]||CURRENCIES.TZS;
+  const today=new Date().toLocaleDateString('en-GB');
+  const systemPrompt=`You are an intelligent PSN account reselling assistant with a friendly conversational style. You help manage a PSN account reselling business.
+
+LIVE INVENTORY: ${JSON.stringify(accounts.map(a=>({email:a.email,console:a.console,region:a.region,games:a.games,costTZS:a.costTZS,status:a.status,ps5Slots:a.ps5Slots,ps4Slots:a.ps4Slots,slotHistory:a.slotHistory||[]})))}
+TODAY: ${today}
+CURRENCY: ${c.name} (${c.code}), 1 USD = 2600 TZS
+
+You MUST respond with ONLY a valid JSON object. No markdown, no extra text, just JSON.
+
+--- RESPONSE TYPES ---
+
+1. For READ/analysis questions:
+{"type":"answer","text":"your answer in 1-3 sentences"}
+
+2. When user wants to write but you need more info — ask ONE question at a time:
+{"type":"gathering","text":"What is the email address for this account?","field":"email"}
+
+3. When you have ALL required info for a write action — show confirmation:
+{"type":"action","action":"add","params":{"email":"...","password":"...","console":"PS5","region":"R1","games":["FIFA 25"],"costTZS":20000,"backupCode1":"...","backupCode2":"...","backupCode3":"..."},"confirm":"Add psstore@gmail.com · PS5 · R1 · FIFA 25 · Cost TZS 20,000?"}
+{"type":"action","action":"sellSlot","params":{"email":"...","console":"PS5","slot":1,"sellPrice":30000,"date":"${today}"},"confirm":"Sell PS5 Slot 1 on psstore@gmail.com for TZS 30,000?"}
+{"type":"action","action":"update","params":{"email":"...","fields":{"password":"newpass"}},"confirm":"Update password on psstore@gmail.com?"}
+{"type":"action","action":"delete","params":{"email":"..."},"confirm":"Permanently delete psstore@gmail.com? This cannot be undone."}
+
+--- RULES ---
+- For ADD: required fields are email, password, console, region, games, costTZS, backupCode1, backupCode2, backupCode3. Ask for them one at a time if missing.
+- For SELL: required are email, console (PS5/PS4), slot (1/2/3), sellPrice. Find account by partial email match.
+- For DELETE/UPDATE: only need email to start (find by partial match).
+- backupCode fields default to "pending" ONLY if user explicitly says they don't have them.
+- Prices entered in ${c.code} — convert to TZS for storage if needed.
+- Be friendly and natural. Remember all previous messages in the conversation.
+- NEVER invent data. If unsure about an email, show options from inventory.`;
+
+  try {
+    if(DEMO_MODE) return {type:'answer',text:'AI is not available in demo mode. Connect your Google Sheet and Claude API key to use Ask AI.'};
+    const res=await fetch(SHEET_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({
+        action:'askClaude',
+        system:systemPrompt,
+        messages:aiConversation,
+        apiKey:GEMINI_KEY
+      }),
+      redirect:'follow'
+    });
+    const text=await res.text();
+    const j=JSON.parse(text);
+    if(j.error) throw new Error(j.error);
+    try {
+      const clean=j.answer.replace(/```json|```/g,'').trim();
+      return JSON.parse(clean);
+    } catch(e) {
+      return {type:'answer',text:j.answer};
+    }
+  } catch(e){return {type:'answer',text:'AI error: '+e.message};}
+}
+
+// ── DARK MODE ─────────────────────────────────────────────────
+let DARK = localStorage.getItem('psn_dark')==='1';
+function applyDark(){
+  document.documentElement.setAttribute('data-theme', DARK?'dark':'');
+  const btn=document.getElementById('dark-btn');
+  if(btn) btn.textContent=DARK?'☀️':'🌙';
+}
+function toggleDark(){
+  DARK=!DARK;
+  localStorage.setItem('psn_dark',DARK?'1':'0');
+  applyDark();
+}
+
+// ── GREETING ──────────────────────────────────────────────────
+function setGreeting(){
+  const h=new Date().getHours();
+  const el=document.getElementById('greeting-text');
+  if(!el) return;
+  el.textContent = h<12?'Good morning 👋':h<17?'Good afternoon 👋':'Good evening 👋';
+}
+
+// ── SELL PRICE HINT ───────────────────────────────────────────
+function updateSellHint(val) {
+  const hint=document.getElementById('sell-price-hint');
+  if(!hint) return;
+  const c=CURRENCIES[CURRENCY]||CURRENCIES.TZS;
+  if(!val||c.code==='TZS'){hint.textContent='';return;}
+  const tzs=Math.round(parseFloat(val)/c.rate);
+  hint.textContent='= TZS '+tzs.toLocaleString()+' (stored internally)';
+}
+
+// ── LOW STOCK BADGE ───────────────────────────────────────────
+function checkLowStock(accounts) {
+  const badge=document.getElementById('low-stock-badge');
+  if(!badge) return;
+  const low=accounts.filter(a=>{
+    const free=(a.ps5Slots||[]).filter(s=>!s).length+(a.ps4Slots||[]).filter(s=>!s).length;
+    return free===1;
+  });
+  badge.style.display=low.length?'inline-block':'none';
+  badge.textContent=low.length?`⚠ ${low.length} Low Stock`:'';
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────────
+async function exportCSV() {
+  const res=await sheetAPI('getAll');
+  const accounts=res.accounts||[];
+  if(!accounts.length){showResult('error','No accounts to export.');return;}
+  const headers=['Email','Password','Console','Region','Games','Cost TZS','Status','Date Added','Date Sold','PS5 Slots Sold','PS4 Slots Sold','Backup Code 1','Backup Code 2','Backup Code 3','Notes'];
+  const rows=accounts.map(a=>[
+    a.email,a.password,a.console,a.region,(a.games||[]).join('|'),
+    a.costTZS,a.status,a.dateAdded,a.dateSold||'',
+    (a.ps5Slots||[]).filter(Boolean).length,
+    (a.ps4Slots||[]).filter(Boolean).length,
+    a.backupCode1,a.backupCode2,a.backupCode3,a.notes||''
+  ]);
+  const csv=[headers,...rows].map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='psn-accounts-'+new Date().toLocaleDateString('en-GB').replace(/\//g,'-')+'.csv';
+  a.click(); URL.revokeObjectURL(url);
+  showResult('success','✓ CSV exported — check your downloads');
+}
+
+// ── ANIMATED STAT COUNTER ─────────────────────────────────────
+function animateStat(id, target, prefix='', suffix='') {
+  const el=document.getElementById(id);
+  if(!el) return;
+  const start=parseInt(el.textContent)||0;
+  const diff=target-start;
+  const steps=20;
+  let i=0;
+  const t=setInterval(()=>{
+    i++;
+    el.textContent=prefix+Math.round(start+(diff*i/steps))+suffix;
+    if(i>=steps){el.textContent=prefix+target+suffix;clearInterval(t);}
+  },16);
+}
+
+// ── STATS ─────────────────────────────────────────────────────
+async function refreshStats() {
+  const res=await sheetAPI('getStats');
+  if(res.error) {
+    document.getElementById('conn-label').textContent='⚠ ' + res.error;
+    return;
+  }
+  if(!res.success) return;
+  const s=res.stats;
+  ['s-total','s-avail','s-sold','s-profit'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.classList.remove('skel','skel-line');el.style.width='';el.style.margin='';}
+  });
+  animateStat('s-total',s.total);
+  animateStat('s-avail',s.available);
+  animateStat('s-sold',s.sold);
+  // Convert & abbreviate profit for display (uses current currency)
+  const rawProfit = s.totalProfit || 0;
+  const c = CURRENCIES[CURRENCY] || CURRENCIES.TZS;
+  const profitConverted = rawProfit * c.rate;
+  let profitStr;
+  if(c.code === 'USD') {
+    profitStr = profitConverted >= 1000 ? '$'+(profitConverted/1000).toFixed(1)+'K'
+              : profitConverted >= 0   ? '$'+profitConverted.toFixed(0)
+              : '-$'+Math.abs(profitConverted).toFixed(0);
+  } else {
+    const abs = Math.abs(rawProfit);
+    const sign = rawProfit < 0 ? '-' : '';
+    profitStr = abs >= 1000000 ? sign+(abs/1000000).toFixed(1)+'M'
+              : abs >= 1000    ? sign+Math.round(abs/1000)+'K'
+              : sign+abs;
+  }
+  document.getElementById('s-profit').textContent = profitStr;
+}
+
+// ── MODAL HELPERS ─────────────────────────────────────────────
+function openModal(name){
+  if(['sell','update','delete'].includes(name)) populateDropdowns();
+  document.getElementById('modal-'+name).classList.add('open');
+}
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+  if(id==='modal-sell'){
+    document.getElementById('sell-search').value='';
+    document.getElementById('sell-email').value='';
+    document.getElementById('sell-selected-badge').style.display='none';
+    document.getElementById('sell-console-section').style.display='none';
+    document.getElementById('sell-account-list').style.display='none';
+    document.getElementById('recent-sales-section').style.display='none';
+  }
+  if(id==='modal-update'){
+    document.getElementById('upd-search').value='';
+    document.getElementById('upd-email').value='';
+    document.getElementById('upd-selected-badge').style.display='none';
+    document.getElementById('upd-fields').style.display='none';
+    document.getElementById('upd-account-list').style.display='none';
+  }
+  if(id==='modal-ask'){
+    clearAIChat();
+  }
+  if(id==='modal-delete'){
+    document.getElementById('del-search').value='';
+    document.getElementById('del-email').value='';
+    document.getElementById('del-selected-badge').style.display='none';
+    document.getElementById('del-account-list').style.display='none';
+    document.getElementById('del-confirm-box').style.display='none';
+    document.getElementById('del-warning').style.display='block';
+    const btn=document.getElementById('btn-delete');
+    btn.textContent='Delete Account'; btn.dataset.confirmed='0';
+  }
+}
+function closeOut(e,id){if(e.target.id===id)closeModal(id);}
+function togglePill(el){el.classList.toggle('selected');}
+function pickOne(el,grp){
+  el.closest('.pill-group').querySelectorAll('.pill').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+  if(grp){const h=document.getElementById(grp);if(h)h.value=el.textContent.trim();}
+}
+function setQ(el,q){
+  document.getElementById('ask-q').value=q;
+  document.querySelectorAll('#modal-ask .pill').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function populateDropdowns() {
+  const res=await sheetAPI('getAll');
+  allAccounts=(res.accounts||[]).sort((a,b)=>parseDate(b.dateAdded)-parseDate(a.dateAdded));
+  renderModalList(allAccounts,'upd');
+  renderModalList(allAccounts,'del');
+  renderSellList(allAccounts);
+}
+
+function renderModalList(accounts, prefix) {
+  const list=document.getElementById(prefix+'-account-list');
+  if(!list) return;
+  if(!accounts.length){
+    list.style.display='block';
+    list.innerHTML='<div style="padding:12px;font-size:12px;color:var(--text3);text-align:center">No accounts found</div>';
+    return;
+  }
+  list.style.display='block';
+  list.innerHTML='';
+  accounts.forEach(a=>{
+    const item=document.createElement('div');
+    item.className='sell-acc-item';
+    const isPS5=a.console==='PS5'||a.console==='Both PS4 & PS5';
+    const isPS4=a.console==='PS4'||a.console==='Both PS4 & PS5';
+    const sc=a.status==='Available'?'badge-green':a.status==='Sold'?'badge-red':'badge-amber';
+    item.innerHTML=`
+      <div class="sell-acc-email">${a.email}</div>
+      <div class="sell-acc-meta">
+        ${isPS5?'<span class="sell-acc-tag console-ps5">PS5</span>':''}
+        ${isPS4?'<span class="sell-acc-tag console-ps4">PS4</span>':''}
+        <span class="sell-acc-tag">${a.region}</span>
+        <span class="badge ${sc}" style="font-size:9px">${a.status}</span>
+        ${a.dateAdded?`<span class="sell-acc-tag">📅 ${a.dateAdded}</span>`:''}
+      </div>`;
+    item.onclick=()=>selectModalAccount(prefix, a.email);
+    list.appendChild(item);
+  });
+}
+
+function filterModalAccounts(q, prefix) {
+  const lq=q.toLowerCase().trim();
+  if(!lq){ renderModalList(allAccounts, prefix); return; }
+  const filtered=allAccounts.filter(a=>
+    a.email.toLowerCase().includes(lq)||
+    (a.console||'').toLowerCase().includes(lq)||
+    (a.games||[]).some(g=>g.toLowerCase().includes(lq))||
+    (a.region||'').toLowerCase().includes(lq)||
+    (a.status||'').toLowerCase().includes(lq)
+  );
+  renderModalList(filtered, prefix);
+}
+
+function selectModalAccount(prefix, email) {
+  document.getElementById(prefix+'-email').value=email;
+  document.getElementById(prefix+'-account-list').style.display='none';
+  document.getElementById(prefix+'-search').value='';
+  const acc=allAccounts.find(a=>a.email===email);
+  const badge=document.getElementById(prefix+'-selected-badge');
+  badge.style.display='block';
+  badge.innerHTML=`<div class="selected-badge">
+    <div class="selected-badge-email">✓ ${acc.email}</div>
+    <div class="selected-badge-clear" onclick="clearModalAccount('${prefix}')">×</div>
+  </div>`;
+  if(prefix==='upd') loadUpdateFields();
+  if(prefix==='del'){
+    // Reset confirmation state when new account is selected
+    document.getElementById('del-confirm-box').style.display='none';
+    document.getElementById('del-warning').style.display='block';
+    const btn=document.getElementById('btn-delete');
+    btn.textContent='Delete Account'; btn.dataset.confirmed='0';
+  }
+}
+
+function clearModalAccount(prefix) {
+  document.getElementById(prefix+'-email').value='';
+  document.getElementById(prefix+'-selected-badge').style.display='none';
+  document.getElementById(prefix+'-search').value='';
+  if(prefix==='upd') document.getElementById('upd-fields').style.display='none';
+  renderModalList(allAccounts, prefix);
+}
+
+
+function parseDate(d) {
+  if(!d) return new Date(0);
+  // handle dd/mm/yyyy or mm/dd/yyyy or yyyy-mm-dd
+  const parts = d.split(/[\/\-]/);
+  if(parts.length===3){
+    if(parts[0].length===4) return new Date(d); // yyyy-mm-dd
+    // assume dd/mm/yyyy (en-GB)
+    return new Date(`${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`);
+  }
+  return new Date(d);
+}
+
+function renderSellList(accounts) {
+  const list=document.getElementById('sell-account-list');
+  if(!accounts.length){
+    list.style.display='block';
+    list.innerHTML='<div style="padding:12px;font-size:12px;color:var(--text3);text-align:center">No accounts found</div>';
+    return;
+  }
+  list.style.display='block';
+  list.innerHTML='';
+  accounts.forEach(a=>{
+    const item=document.createElement('div');
+    item.className='sell-acc-item';
+    const p5free=(a.ps5Slots||[]).filter(s=>!s).length;
+    const p4free=(a.ps4Slots||[]).filter(s=>!s).length;
+    const isPS5=a.console==='PS5'||a.console==='Both PS4 & PS5';
+    const isPS4=a.console==='PS4'||a.console==='Both PS4 & PS5';
+    const sc=a.status==='Available'?'badge-green':a.status==='Sold'?'badge-red':'badge-amber';
+    item.innerHTML=`
+      <div class="sell-acc-email">${a.email}</div>
+      <div class="sell-acc-meta">
+        ${isPS5?`<span class="sell-acc-tag console-ps5">PS5 · ${p5free}/3 free</span>`:''}
+        ${isPS4?`<span class="sell-acc-tag console-ps4">PS4 · ${p4free}/3 free</span>`:''}
+        <span class="sell-acc-tag">${a.region}</span>
+        <span class="badge ${sc}" style="font-size:9px">${a.status}</span>
+        ${a.dateAdded?`<span class="sell-acc-tag">📅 ${a.dateAdded}</span>`:''}
+      </div>
+      <div class="sell-acc-meta" style="margin-top:1px">${(a.games||[]).map(g=>`<span class="sell-acc-tag">${g}</span>`).join('')}</div>`;
+    item.onclick=()=>selectSellAccount(a.email);
+    list.appendChild(item);
+  });
+}
+
+function filterSellAccounts(q) {
+  const lq=q.toLowerCase().trim();
+  if(!lq){ renderSellList(allAccounts); return; }
+  const filtered=allAccounts.filter(a=>
+    a.email.toLowerCase().includes(lq)||
+    (a.console||'').toLowerCase().includes(lq)||
+    (a.games||[]).some(g=>g.toLowerCase().includes(lq))||
+    (a.region||'').toLowerCase().includes(lq)||
+    (a.status||'').toLowerCase().includes(lq)
+  );
+  renderSellList(filtered);
+}
+
+function selectSellAccount(email) {
+  if(!document.getElementById('modal-sell').classList.contains('open')) return;
+  document.getElementById('sell-email').value=email;
+  const acc=allAccounts.find(a=>a.email===email);
+  if(!acc) return;
+  document.getElementById('sell-account-list').style.display='none';
+  document.getElementById('sell-search').value='';
+  const badge=document.getElementById('sell-selected-badge');
+  badge.style.display='block';
+  badge.innerHTML=`<div class="selected-badge">
+    <div class="selected-badge-email">✓ ${acc.email}</div>
+    <div class="selected-badge-clear" onclick="clearSellAccount()">×</div>
+  </div>`;
+  loadSellSlots();
+  loadRecentSales();
+}
+
+function clearSellAccount() {
+  document.getElementById('sell-email').value='';
+  document.getElementById('sell-selected-badge').style.display='none';
+  document.getElementById('sell-console-section').style.display='none';
+  document.getElementById('sell-search').value='';
+  renderSellList(allAccounts);
+}
+
+
+function loadSellSlots() {
+  const email=document.getElementById('sell-email').value;
+  const section=document.getElementById('sell-console-section');
+  if(!email){section.style.display='none';return;}
+  section.style.display='block';
+  const acc=allAccounts.find(a=>a.email===email);
+  if(!acc) return;
+
+  // show preview
+  const preview=document.getElementById('sell-account-preview');
+  const avgSale = (acc.slotHistory||[]).length
+    ? Math.round((acc.slotHistory||[]).reduce((s,h)=>s+(h.price||0),0)/(acc.slotHistory||[]).length)
+    : null;
+  preview.innerHTML=`<div class="info-box" style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:12px">
+    <div><span style="color:var(--text3)">Email</span><br><strong style="font-family:'DM Mono',monospace;font-size:11px">${acc.email}</strong></div>
+    <div><span style="color:var(--text3)">Console · Region</span><br><strong>${acc.console} · ${acc.region}</strong></div>
+    <div><span style="color:var(--text3)">Cost paid</span><br><strong>${fmt(acc.costTZS)}</strong></div>
+    <div><span style="color:var(--text3)">Avg past sale</span><br><strong style="color:var(--green)">${avgSale?fmt(avgSale):'No sales yet'}</strong></div>
+    <div style="grid-column:1/-1"><span style="color:var(--text3)">Games</span><br><span style="font-size:11px">${(acc.games||[]).join(' · ')}</span></div>
+  </div>
+  ${avgSale?`<div style="margin-top:6px;font-size:11px;color:var(--green);padding:6px 10px;background:var(--green-bg);border-radius:8px">💡 Suggested price: ${fmt(avgSale)} (based on ${acc.slotHistory.length} past sale${acc.slotHistory.length!==1?'s':''})</div>`:''}`;
+
+  // console pills based on account type
+  const pillContainer=document.getElementById('sell-console-pills');
+  pillContainer.innerHTML='';
+  const consoles=acc.console==='Both PS4 & PS5'?['PS5','PS4']:[acc.console];
+  consoles.forEach(c=>{
+    const p=document.createElement('div');
+    p.className='pill '+(c==='PS5'?'ps5':'ps4');
+    p.textContent=c;
+    p.onclick=()=>{
+      pillContainer.querySelectorAll('.pill').forEach(x=>x.classList.remove('selected'));
+      p.classList.add('selected');
+      document.getElementById('sell-console').value=c;
+      loadSlotButtons(acc,c);
+    };
+    pillContainer.appendChild(p);
+  });
+  document.getElementById('sell-slot-section').style.display='none';
+}
+
+function loadSlotButtons(acc, console_) {
+  const slotKey=console_==='PS5'?'ps5Slots':'ps4Slots';
+  const slots=acc[slotKey]||[false,false,false];
+  const container=document.getElementById('sell-slots');
+  container.innerHTML='';
+  document.getElementById('sell-slot-section').style.display='block';
+
+  slots.forEach((sold,i)=>{
+    const btn=document.createElement('div');
+    btn.className='slot-btn'+(sold?' sold-out':'');
+    btn.innerHTML=`Slot ${i+1}<span>${sold?'Sold':'Free'}</span>`;
+    if(!sold){
+      btn.onclick=()=>{
+        container.querySelectorAll('.slot-btn').forEach(b=>b.classList.remove('selected'));
+        btn.classList.add('selected');
+      };
+    }
+    container.appendChild(btn);
+  });
+}
+
+function loadUpdateFields() {
+  const email=document.getElementById('upd-email').value;
+  const fields=document.getElementById('upd-fields');
+  if(!email){fields.style.display='none';return;}
+  fields.style.display='flex';
+  const acc=allAccounts.find(a=>a.email===email);
+  if(!acc) return;
+  document.getElementById('upd-pass').placeholder='Current: '+acc.password;
+  document.getElementById('upd-cost').placeholder='Current: '+fmt(acc.costTZS);
+  document.getElementById('upd-target').placeholder='Current: '+fmt(acc.targetSellTZS);
+  document.getElementById('upd-sell').placeholder='Current: '+fmt(acc.actualSellTZS);
+}
+
+// ── SUBMIT ACTIONS ────────────────────────────────────────────
+async function submitAdd() {
+  const email=document.getElementById('a-email').value.trim();
+  const pass=document.getElementById('a-pass').value.trim();
+  const console_=document.getElementById('add-console').value;
+  const region=document.getElementById('a-region').value;
+  const cost=document.getElementById('a-cost').value;
+  const target=document.getElementById('a-target').value;
+  const sell=document.getElementById('a-sell').value;
+  const code1=document.getElementById('a-code1').value.trim();
+  const code2=document.getElementById('a-code2').value.trim();
+  const code3=document.getElementById('a-code3').value.trim();
+  const notes=document.getElementById('a-notes').value.trim();
+
+  const gamePills=[...document.querySelectorAll('#add-games .pill.selected')].map(p=>p.textContent);
+  const customGames=document.getElementById('a-games-custom').value.split(',').map(g=>g.trim()).filter(Boolean);
+  const games=[...gamePills,...customGames];
+
+  if(!email||!pass||!console_||!region||!games.length||!cost||!code1||!code2||!code3){
+    showResult('error','⚠ Please fill all required fields.\nMissing: '+[
+      !email&&'Email',!pass&&'Password',!console_&&'Console',!region&&'Region',
+      !games.length&&'Games',!cost&&'Account Cost',
+      !code1&&'Backup Code 1',!code2&&'Backup Code 2',!code3&&'Backup Code 3'
+    ].filter(Boolean).join(', '));
+    closeModal('modal-add'); return;
+  }
+
+  setBusy('btn-add',true,'Adding…');
+  const res=await sheetAPI('add',{account:{
+    email,password:pass,console:console_,region,games,
+    costTZS:Math.round(parseFloat(cost)/(CURRENCIES[CURRENCY]||CURRENCIES.TZS).rate),targetSellTZS:0,actualSellTZS:0,
+    backupCode1:code1,backupCode2:code2,backupCode3:code3,notes,
+    ps5Slots:[false,false,false],ps4Slots:[false,false,false],status:'Available',dateAdded:new Date().toLocaleDateString('en-GB'),dateSold:'',slotHistory:[]
+  }});
+  setBusy('btn-add',false,'Add Account');
+
+  if(res.success){
+    closeModal('modal-add'); resetAdd();
+    showResult('success',`✓ Account added: ${email}\nConsole: ${console_} · Region: ${region}\nCost paid: ${fmt(cost)}`);
+    await refreshStats();
+    const ar=await sheetAPI('getAll'); allAccounts=(ar.accounts||[]).sort((a,b)=>parseDate(b.dateAdded)-parseDate(a.dateAdded)); checkLowStock(allAccounts);
+  } else showResult('error','✗ '+res.error);
+}
+
+async function loadRecentSales() {
+  if(!document.getElementById('modal-sell').classList.contains('open')) return;
+  const res = await sheetAPI('getRecentSales');
+  if(!document.getElementById('modal-sell').classList.contains('open')) return; // recheck after async
+  const sales = res.sales || [];
+  const section = document.getElementById('recent-sales-section');
+  const list = document.getElementById('recent-sales-list');
+  const countEl = document.getElementById('recent-sales-count');
+  if(!sales.length){ section.style.display='none'; return; }
+  section.style.display='block';
+  countEl.textContent = sales.length + ' sale' + (sales.length!==1?'s':'');
+  list.innerHTML='';
+  sales.forEach(s=>{
+    const showPS5 = s.accountConsole==='PS5' || s.accountConsole==='Both PS4 & PS5';
+    const showPS4 = s.accountConsole==='PS4' || s.accountConsole==='Both PS4 & PS5';
+    const p5f = (s.ps5Slots||[]).filter(x=>!x).length;
+    const p4f = (s.ps4Slots||[]).filter(x=>!x).length;
+    const item = document.createElement('div');
+    item.className = 'sale-item';
+    item.innerHTML = `
+      <div class="sale-item-top">
+        <span class="sale-email-small">${s.email}</span>
+        <span class="sale-price">${fmt(s.price)}</span>
+      </div>
+      <div class="sale-meta">
+        <span class="sale-tag ${s.console==='PS5'?'console-ps5':'console-ps4'}">${s.console} · Slot ${s.slot}</span>
+        <span class="sale-tag">${s.region}</span>
+        <span class="sale-date">📅 ${s.date}</span>
+      </div>
+      <div class="slots-remaining">
+        <span class="slots-remaining-label">Slots left:</span>
+        ${showPS5?`<span class="sale-tag console-ps5">PS5: ${p5f}/3 free</span>`:''}
+        ${showPS4?`<span class="sale-tag console-ps4">PS4: ${p4f}/3 free</span>`:''}
+      </div>`;
+    list.appendChild(item);
+  });
+}
+
+async function submitSell() {
+  const email=document.getElementById('sell-email').value;
+  const console_=document.getElementById('sell-console').value;
+  const price=document.getElementById('sell-price').value;
+  const selectedSlot=document.querySelector('#sell-slots .slot-btn.selected');
+
+  if(!email||!console_||!selectedSlot||!price){
+    showResult('error','Please select account, console, slot, and enter price.');
+    return;
+  }
+  const slotNum=selectedSlot.textContent.replace('Slot ','').charAt(0);
+  // Convert entered price back to TZS for storage (all prices stored in TZS internally)
+  const c=CURRENCIES[CURRENCY]||CURRENCIES.TZS;
+  const priceTZS=Math.round(parseFloat(price)/c.rate);
+
+  setBusy('btn-sell',true,'Processing…');
+  const saleDate=new Date().toLocaleDateString('en-GB');
+  const res=await sheetAPI('sellSlot',{email,console:console_,slot:slotNum,sellPrice:priceTZS,date:saleDate});
+  setBusy('btn-sell',false,'Confirm Sale ✓');
+
+  if(res.success){
+    closeModal('modal-sell');
+    showResult('success',`✓ ${res.message}\nAccount: ${email}\nDate: ${saleDate}`);
+    await refreshStats();
+    const [sr, rr]=await Promise.all([sheetAPI('getAll'),sheetAPI('getRecentSales')]); allAccounts=(sr.accounts||[]).sort((a,b)=>parseDate(b.dateAdded)-parseDate(a.dateAdded)); checkLowStock(allAccounts); renderTodayCard(allAccounts,rr.sales||[]);
+  } else showResult('error','✗ '+res.error);
+}
+
+async function submitUpdate() {
+  const email=document.getElementById('upd-email').value;
+  if(!email){showResult('error','Please select an account.');return;}
+  const fields={};
+  const pass=document.getElementById('upd-pass').value.trim();
+  const region=document.getElementById('upd-region').value;
+  const cost=document.getElementById('upd-cost').value;
+  const target=document.getElementById('upd-target').value;
+  const sell=document.getElementById('upd-sell').value;
+  const notes=document.getElementById('upd-notes').value.trim();
+  if(pass) fields.password=pass;
+  if(region) fields.region=region;
+  const cu=CURRENCIES[CURRENCY]||CURRENCIES.TZS;
+  if(cost) fields.costTZS=Math.round(parseFloat(cost)/cu.rate);
+  if(target) fields.targetSellTZS=Math.round(parseFloat(target)/cu.rate);
+  if(sell) fields.actualSellTZS=Math.round(parseFloat(sell)/cu.rate);
+  if(notes) fields.notes=notes;
+  if(!Object.keys(fields).length){showResult('error','No changes entered.');return;}
+  setBusy('btn-update',true,'Saving…');
+  const res=await sheetAPI('update',{email,fields});
+  setBusy('btn-update',false,'Save Changes');
+  if(res.success){closeModal('modal-update');showResult('success','✓ Updated: '+email);await refreshStats();const ur=await sheetAPI('getAll');allAccounts=(ur.accounts||[]).sort((a,b)=>parseDate(b.dateAdded)-parseDate(a.dateAdded));checkLowStock(allAccounts);}
+  else showResult('error','✗ '+res.error);
+}
+
+async function submitDelete() {
+  const email=document.getElementById('del-email').value;
+  if(!email){showResult('error','Please select an account.');return;}
+  // Show confirmation if not yet confirmed
+  const btn=document.getElementById('btn-delete');
+  if(btn.dataset.confirmed !== '1') {
+    document.getElementById('del-confirm-email').textContent=email;
+    document.getElementById('del-confirm-box').style.display='block';
+    document.getElementById('del-warning').style.display='none';
+    btn.textContent='⚠ Yes, Delete Permanently';
+    btn.dataset.confirmed='1';
+    return;
+  }
+  btn.dataset.confirmed='0';
+  setBusy('btn-delete',true,'Deleting…');
+  const res=await sheetAPI('delete',{email});
+  setBusy('btn-delete',false,'Delete Account');
+  if(res.success){closeModal('modal-delete');showResult('success','✓ Deleted: '+email);await refreshStats();const dr=await sheetAPI('getAll');allAccounts=(dr.accounts||[]).sort((a,b)=>parseDate(b.dateAdded)-parseDate(a.dateAdded));checkLowStock(allAccounts);}
+  else showResult('error','✗ '+res.error);
+}
+
+async function showQuickStats() {
+  document.getElementById('modal-search').classList.add('open');
+  const body = document.getElementById('quick-stats-body');
+  body.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px"><span class="spinner" style="border-color:var(--border);border-top-color:var(--text);display:inline-block"></span> Loading…</div>';
+
+  const [statsRes, allRes, recentRes] = await Promise.all([
+    sheetAPI('getStats'),
+    sheetAPI('getAll'),
+    sheetAPI('getRecentSales')
+  ]);
+
+  const s = statsRes.stats || {};
+  const accounts = allRes.accounts || [];
+  const recentSales = recentRes.sales || [];
+  const today = new Date().toLocaleDateString('en-GB');
+
+  // Today's sales
+  const todaySales = recentSales.filter(s => s.date === today);
+  const todayRevenue = todaySales.reduce((t, s) => t + (s.price||0), 0);
+
+  // Slots breakdown
+  let ps5Free=0, ps5Sold=0, ps4Free=0, ps4Sold=0;
+  accounts.forEach(a => {
+    (a.ps5Slots||[]).forEach(s => s ? ps5Sold++ : ps5Free++);
+    (a.ps4Slots||[]).forEach(s => s ? ps4Sold++ : ps4Free++);
+  });
+
+  // Low stock (1 slot left)
+  const lowStock = accounts.filter(a => {
+    const free = (a.ps5Slots||[]).filter(s=>!s).length + (a.ps4Slots||[]).filter(s=>!s).length;
+    return free === 1;
+  });
+
+  // R1 vs R2 split
+  const r1 = accounts.filter(a=>a.region==='R1').length;
+  const r2 = accounts.filter(a=>a.region==='R2').length;
+
+  body.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px">
+
+      <div style="background:var(--green-bg);border:1px solid var(--green-bd);border-radius:12px;padding:14px">
+        <div style="font-size:10px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">📅 Today — ${today}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:26px;font-weight:800;color:var(--green);letter-spacing:-.02em">${todaySales.length} <span style="font-size:14px;font-weight:500">slot${todaySales.length!==1?'s':''} sold</span></div>
+            <div style="font-size:12px;color:var(--green);margin-top:2px">${fmt(todayRevenue)} earned today</div>
+          </div>
+          ${todaySales.length?`<div style="font-size:10px;color:var(--green);text-align:right;line-height:1.7">${todaySales.slice(0,3).map(s=>`${s.console} Slot ${s.slot}<br>`).join('')}${todaySales.length>3?`+${todaySales.length-3} more`:''}</div>`:'<div style="font-size:11px;color:var(--green);opacity:.6">No sales yet today</div>'}
+        </div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px">
+        <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Slots Remaining</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:#e0e7ff;border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:#3730a3">${ps5Free}</div>
+            <div style="font-size:10px;color:#3730a3;margin-top:2px">PS5 free</div>
+          </div>
+          <div style="background:#fef3c7;border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:#92400e">${ps4Free}</div>
+            <div style="font-size:10px;color:#92400e;margin-top:2px">PS4 free</div>
+          </div>
+          <div style="background:var(--red-bg);border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:var(--red)">${ps5Sold}</div>
+            <div style="font-size:10px;color:var(--red);margin-top:2px">PS5 sold</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:var(--text2)">${ps4Sold}</div>
+            <div style="font-size:10px;color:var(--text2);margin-top:2px">PS4 sold</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px">
+        <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">All-Time Profit</div>
+        <div style="font-size:28px;font-weight:800;color:var(--green);letter-spacing:-.02em">${fmt(s.totalProfit||0)}</div>
+        <div style="display:flex;gap:16px;margin-top:8px">
+          <div><div style="font-size:11px;color:var(--text3)">Invested</div><div style="font-size:13px;font-weight:600">${fmt(s.totalInvested||0)}</div></div>
+          <div><div style="font-size:11px;color:var(--text3)">Slots sold</div><div style="font-size:13px;font-weight:600">${s.totalSlotsSold||0}</div></div>
+          <div><div style="font-size:11px;color:var(--text3)">Accounts</div><div style="font-size:13px;font-weight:600">${s.total||0}</div></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:20px;font-weight:800">${r1}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">R1 accounts</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:20px;font-weight:800">${r2}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">R2 accounts</div>
+        </div>
+      </div>
+
+      ${lowStock.length ? `
+      <div style="background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:12px;padding:14px">
+        <div style="font-size:10px;font-weight:600;color:var(--amber);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">⚠️ Low Stock (1 slot left)</div>
+        ${lowStock.map(a=>`<div style="font-size:11px;color:var(--amber);padding:2px 0;font-family:'DM Mono',monospace">${a.email}</div>`).join('')}
+      </div>` : `
+      <div style="background:var(--green-bg);border:1px solid var(--green-bd);border-radius:12px;padding:12px;text-align:center;font-size:12px;color:var(--green)">✓ No low stock accounts</div>`}
+
+    </div>`;
+}
+
+// ── AI CHAT ───────────────────────────────────────────────────
+let pendingAIAction = null;
+
+function addChatMsg(role, text, isAction=false) {
+  const chat=document.getElementById('ask-chat');
+  const msg=document.createElement('div');
+  msg.style.cssText=`display:flex;flex-direction:column;gap:3px;${role==='user'?'align-items:flex-end':''}`;
+  const bubble=document.createElement('div');
+  bubble.style.cssText=`max-width:85%;padding:10px 13px;border-radius:${role==='user'?'14px 14px 4px 14px':'14px 14px 14px 4px'};font-size:13px;line-height:1.6;${
+    role==='user'?'background:var(--ai);color:#fff'
+    :isAction?'background:var(--amber-bg);border:1px solid var(--amber-bd);color:var(--amber)'
+    :'background:var(--surface2);border:1px solid var(--border);color:var(--text)'}`;
+  bubble.textContent=text;
+  msg.appendChild(bubble);
+  chat.appendChild(msg);
+  chat.scrollTop=chat.scrollHeight;
+  return msg;
+}
+
+function addConfirmButtons(actionData) {
+  const chat=document.getElementById('ask-chat');
+  const row=document.createElement('div');
+  row.id='ai-confirm-row';
+  row.style.cssText='display:flex;gap:8px;justify-content:flex-end';
+  row.innerHTML=`
+    <button onclick="cancelAIAction()" style="padding:8px 16px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);font-size:12px;font-weight:600;cursor:pointer;font-family:'Geist',sans-serif;color:var(--text2)">✗ Cancel</button>
+    <button onclick="confirmAIAction()" style="padding:8px 16px;border-radius:10px;border:none;background:var(--green);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:'Geist',sans-serif">✓ Confirm</button>`;
+  chat.appendChild(row);
+  chat.scrollTop=chat.scrollHeight;
+}
+
+async function confirmAIAction() {
+  const row=document.getElementById('ai-confirm-row');
+  if(row) row.remove();
+  if(!pendingAIAction) return;
+  const {action,params}=pendingAIAction;
+  pendingAIAction=null;
+  addChatMsg('ai','⏳ Executing…');
+  let res;
+  if(action==='sellSlot') {
+    res=await sheetAPI('sellSlot',{email:params.email,console:params.console,slot:params.slot,sellPrice:params.sellPrice,date:params.date});
+  } else if(action==='add') {
+    const acc={...params,ps5Slots:[false,false,false],ps4Slots:[false,false,false],status:'Available',
+      dateAdded:params.dateAdded||new Date().toLocaleDateString('en-GB'),dateSold:'',slotHistory:[],
+      backupCode1:params.backupCode1||'pending',backupCode2:params.backupCode2||'pending',backupCode3:params.backupCode3||'pending'};
+    res=await sheetAPI('add',{account:acc});
+  } else if(action==='update') {
+    res=await sheetAPI('update',{email:params.email,fields:params.fields});
+  } else if(action==='delete') {
+    res=await sheetAPI('delete',{email:params.email});
+  }
+  // Remove the "executing" message
+  const chat=document.getElementById('ask-chat');
+  if(chat.lastChild) chat.removeChild(chat.lastChild);
+  if(res&&res.success) {
+    const successMsg='✓ Done! '+(res.message||'Action completed successfully.');
+    addChatMsg('ai',successMsg);
+    aiConversation.push({role:'assistant',content:successMsg});
+    // Refresh data
+    const ar=await sheetAPI('getAll');
+    allAccounts=(ar.accounts||[]).sort((a,b)=>parseDate(b.dateAdded)-parseDate(a.dateAdded));
+    checkLowStock(allAccounts);
+    await refreshStats();
+    // Prompt for next action
+    setTimeout(()=>addChatMsg('ai','Anything else I can help with?'),400);
+  } else {
+    const errMsg='✗ Failed: '+(res?.error||'Unknown error');
+    addChatMsg('ai',errMsg);
+    aiConversation.push({role:'assistant',content:errMsg});
+  }
+}
+
+function cancelAIAction() {
+  const row=document.getElementById('ai-confirm-row');
+  if(row) row.remove();
+  pendingAIAction=null;
+  addChatMsg('ai','Cancelled. What else can I help with?');
+}
+
+async function submitAsk() {
+  const q=document.getElementById('ask-q').value.trim(); if(!q) return;
+  document.getElementById('ask-q').value='';
+  document.getElementById('ask-suggestions').style.display='none';
+  const oldRow=document.getElementById('ai-confirm-row');
+  if(oldRow) oldRow.remove();
+  pendingAIAction=null;
+
+  // Add user message to chat + history
+  addChatMsg('user',q);
+  aiConversation.push({role:'user',content:q});
+
+  // Thinking indicator
+  const thinking=addChatMsg('ai','✦ Thinking…');
+  const btn=document.getElementById('btn-ask');
+  btn.disabled=true; btn.style.opacity='0.5';
+
+  const res=await sheetAPI('getAll');
+  const response=await askClaude(res.accounts||[]);
+
+  thinking.remove();
+  btn.disabled=false; btn.style.opacity='1';
+
+  // Add Claude's response to history
+  const responseText=response.type==='action'?response.confirm:response.text||JSON.stringify(response);
+  aiConversation.push({role:'assistant',content:responseText});
+
+  if(response.type==='answer') {
+    addChatMsg('ai',response.text);
+  } else if(response.type==='gathering') {
+    // Claude is asking for more info — just show the question
+    addChatMsg('ai',response.text);
+  } else if(response.type==='action') {
+    pendingAIAction=response;
+    addChatMsg('ai',response.confirm||'Ready to execute:',true);
+    addConfirmButtons(response);
+  } else {
+    addChatMsg('ai',JSON.stringify(response));
+  }
+}
+
+// Clear conversation when modal closes
+function clearAIChat() {
+  aiConversation=[];
+  pendingAIAction=null;
+  const chat=document.getElementById('ask-chat');
+  if(chat) chat.innerHTML='';
+  const sugg=document.getElementById('ask-suggestions');
+  if(sugg) sugg.style.display='flex';
+  const row=document.getElementById('ai-confirm-row');
+  if(row) row.remove();
+}
+
+let viewAllAccounts = [];
+
+async function showAllAccounts(){
+  // Open modal immediately with skeleton
+  document.getElementById('modal-viewall').classList.add('open');
+  document.getElementById('viewall-search').value = '';
+  document.getElementById('viewall-count').textContent = 'Loading…';
+  document.getElementById('viewall-list').innerHTML = '<div class="skel-card"><div class="skel skel-line" style="width:60%"></div><div class="skel skel-line" style="width:40%"></div></div><div class="skel-card"><div class="skel skel-line" style="width:70%"></div><div class="skel skel-line" style="width:45%"></div></div><div class="skel-card"><div class="skel skel-line" style="width:55%"></div><div class="skel skel-line" style="width:35%"></div></div>';
+  const res = await sheetAPI('getAll');
+  viewAllAccounts = (res.accounts||[]).sort((a,b)=>parseDate(b.dateAdded)-parseDate(a.dateAdded));
+  renderViewAll(viewAllAccounts);
+}
+
+function renderViewAll(list) {
+  const container = document.getElementById('viewall-list');
+  const count = document.getElementById('viewall-count');
+  count.textContent = list.length + ' account' + (list.length!==1?'s':'') + ' · latest first';
+  container.innerHTML = '';
+  if(!list.length){
+    container.innerHTML = '<div class="empty-state">No accounts found.</div>';
+    return;
+  }
+  list.forEach((a,i) => container.appendChild(makeCard(a,i)));
+}
+
+function filterViewAll(q) {
+  const lq = q.toLowerCase().trim();
+  if(!lq){ renderViewAll(viewAllAccounts); return; }
+  renderViewAll(viewAllAccounts.filter(a=>
+    a.email.toLowerCase().includes(lq)||
+    (a.console||'').toLowerCase().includes(lq)||
+    (a.games||[]).some(g=>g.toLowerCase().includes(lq))||
+    (a.region||'').toLowerCase().includes(lq)||
+    (a.status||'').toLowerCase().includes(lq)
+  ));
+}
+
+// ── RENDER CARDS ──────────────────────────────────────────────
+// ── ACTION SHEET (tap on result card) ────────────────────────
+let actionSheetAccount = null;
+
+function openActionSheet(email) {
+  const acc = allAccounts.find(a=>a.email===email);
+  if(!acc) return;
+  actionSheetAccount = acc;
+  document.getElementById('action-sheet-email').textContent = acc.email;
+  const isPS5=acc.console==='PS5'||acc.console==='Both PS4 & PS5';
+  const isPS4=acc.console==='PS4'||acc.console==='Both PS4 & PS5';
+  const p5f=(acc.ps5Slots||[]).filter(s=>!s).length;
+  const p4f=(acc.ps4Slots||[]).filter(s=>!s).length;
+  const slotInfo=[isPS5?`PS5: ${p5f}/3 free`:'',isPS4?`PS4: ${p4f}/3 free`:''].filter(Boolean).join(' · ');
+  document.getElementById('action-sheet-meta').textContent=`${acc.console} · ${acc.region} · ${acc.status}${slotInfo?' · '+slotInfo:''}`;
+  // Dim sell button if no slots left
+  const noSlots=(acc.ps5Slots||[]).every(Boolean)&&(acc.ps4Slots||[]).every(Boolean);
+  const sellBtn=document.getElementById('as-sell-btn');
+  sellBtn.style.opacity=noSlots?'0.4':'1';
+  sellBtn.style.pointerEvents=noSlots?'none':'auto';
+  document.getElementById('modal-action-sheet').classList.add('open');
+}
+
+function actionSheetSell() {
+  const email = actionSheetAccount.email;
+  closeModal('modal-action-sheet');
+  openModal('sell');
+  // Wait for modal animation then select — single short delay
+  setTimeout(()=>selectSellAccount(email), 220);
+}
+
+function actionSheetUpdate() {
+  const email = actionSheetAccount.email;
+  closeModal('modal-action-sheet');
+  openModal('update');
+  setTimeout(()=>selectModalAccount('upd', email), 220);
+}
+
+function actionSheetDelete() {
+  const email = actionSheetAccount.email;
+  closeModal('modal-action-sheet');
+  openModal('delete');
+  setTimeout(()=>selectModalAccount('del', email), 220);
+}
+
+function makeCard(a, i) {
+  const card=document.createElement('div');
+  card.className='result-card';
+  card.style.cursor='pointer';
+  card.onclick=()=>openActionSheet(a.email);
+  const sc=a.status==='Available'?'badge-green':a.status==='Sold'?'badge-red':'badge-amber';
+  const profit=(a.actualSellTZS||0)-(a.costTZS||0);
+  const p5Slots=a.ps5Slots||[false,false,false];
+  const p4Slots=a.ps4Slots||[false,false,false];
+  const hasBoth=a.console==='Both PS4 & PS5';
+  const isPS5=a.console==='PS5'||hasBoth;
+  const isPS4=a.console==='PS4'||hasBoth;
+
+  card.innerHTML=`
+    <div class="rc-email">
+      <span>${a.email}</span>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        ${isPS5?'<span class="console-tag console-ps5">PS5</span>':''}
+        ${isPS4?'<span class="console-tag console-ps4">PS4</span>':''}
+        <span class="badge ${sc}">${a.status}</span>
+      </div>
+    </div>
+    <div class="rc-row"><span class="rc-label">Password</span><span class="rc-val">${a.password||'—'}</span></div>
+    <div class="rc-row"><span class="rc-label">Region</span><span class="rc-val">${a.region||'—'}</span></div>
+    <div class="rc-row"><span class="rc-label">Cost paid</span><span class="rc-val">${fmt(a.costTZS)}</span></div>
+    <div class="rc-row"><span class="rc-label">Target sell</span><span class="rc-val">${fmt(a.targetSellTZS)}</span></div>
+    <div class="rc-row"><span class="rc-label">Actual sell</span><span class="rc-val" style="color:var(--green);font-weight:600">${fmt(a.actualSellTZS)}</span></div>
+    <div class="rc-row"><span class="rc-label">Profit</span><span class="rc-val" style="color:var(--green)">+${fmt(profit)}</span></div>
+    ${isPS5?`<div class="rc-row"><span class="rc-label">PS5 Slots</span><span class="rc-val"><div class="slots-bar">${p5Slots.map((s,i)=>`<div class="slot ${s?'slot-sold':'slot-free'}">${i+1}</div>`).join('')}</div></span></div>`:''}
+    ${isPS4?`<div class="rc-row"><span class="rc-label">PS4 Slots</span><span class="rc-val"><div class="slots-bar">${p4Slots.map((s,i)=>`<div class="slot ${s?'slot-sold':'slot-free'}">${i+1}</div>`).join('')}</div></span></div>`:''}
+    <div class="backup-codes">
+      <div class="backup-codes-label">Backup Codes</div>
+      <div class="backup-code">1. ${a.backupCode1||'—'}</div>
+      <div class="backup-code">2. ${a.backupCode2||'—'}</div>
+      <div class="backup-code">3. ${a.backupCode3||'—'}</div>
+    </div>
+    <div class="games-row">${(a.games||[]).map(g=>`<span class="game-tag">${g}</span>`).join('')}</div>
+    ${a.notes?`<div style="font-size:11px;color:var(--text3);margin-top:8px">Note: ${a.notes}</div>`:''}
+    <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap">
+      ${a.dateAdded?`<span style="font-size:10px;color:var(--text3)">📅 Added: ${a.dateAdded}</span>`:''}
+      ${a.dateSold?`<span style="font-size:10px;color:var(--red)">🔴 Fully sold: ${a.dateSold}</span>`:''}
+    </div>
+    ${(a.slotHistory||[]).length?`<div style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+      <div style="font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Slot Sale History</div>
+      ${(a.slotHistory||[]).map(h=>`<div style="font-size:11px;color:var(--text2);padding:2px 0;font-family:'DM Mono',monospace">${h.date} · ${h.console} Slot ${h.slot} · ${fmt(h.price)}</div>`).join('')}
+    </div>`:''}
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:center;gap:6px">
+      <span style="font-size:11px;color:var(--text3)">Tap card to</span>
+      <span style="font-size:11px;font-weight:600;color:var(--green)">Sell Slot</span>
+      <span style="font-size:11px;color:var(--text3)">·</span>
+      <span style="font-size:11px;font-weight:600;color:var(--amber)">Update</span>
+      <span style="font-size:11px;color:var(--text3)">·</span>
+      <span style="font-size:11px;font-weight:600;color:var(--red)">Delete</span>
+    </div>`;
+  return card;
+}
+
+function showResult(type, text) {
+  // Show inline below actions (for add/sell/update/delete feedback)
+  const area=document.getElementById('result-area');
+  if(!area) return;
+  const el=document.createElement('div');
+  el.className='toast '+type;
+  el.textContent=text;
+  el.style.transition='opacity .4s ease';
+  area.innerHTML=''; area.appendChild(el);
+  if(type==='success'){
+    setTimeout(()=>{
+      el.style.opacity='0';
+      setTimeout(()=>{ if(area.contains(el)) area.removeChild(el); },420);
+    }, 3500);
+  }
+}
+
+function showResults(list, label) {
+  // No-op — results now shown via viewall modal or result-area inline
+}
+
+function setBusy(id, on, label) {
+  const btn=document.getElementById(id); if(!btn) return;
+  btn.disabled=on;
+  btn.innerHTML=on?`<span class="spinner"></span>${label}`:label;
+}
+
+function resetAdd() {
+  ['a-email','a-pass','a-cost','a-target','a-sell','a-code1','a-code2','a-code3','a-notes','a-games-custom'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('a-region').value='';
+  document.getElementById('add-console').value='';
+  document.querySelectorAll('#modal-add .pill').forEach(p=>p.classList.remove('selected'));
+}
+
+// ── INVENTORY TAB ─────────────────────────────────────────────
+async function loadInventory() {
+  const el=document.getElementById('inv-list');
+  if(el) el.innerHTML='<div class="skel-card"><div class="skel skel-line" style="width:70%"></div><div class="skel skel-line" style="width:45%"></div></div><div class="skel-card"><div class="skel skel-line" style="width:60%"></div><div class="skel skel-line" style="width:40%"></div></div><div class="skel-card"><div class="skel skel-line" style="width:65%"></div><div class="skel skel-line" style="width:50%"></div></div>';
+  const res=await sheetAPI('getAll');
+  allAccounts=(res.accounts||[]).sort((a,b)=>parseDate(b.dateAdded)-parseDate(a.dateAdded));
+  renderInv(allAccounts);
+}
+
+function renderInv(list) {
+  const el=document.getElementById('inv-list'); el.innerHTML='';
+  if(!list.length){el.innerHTML='<div class="empty-state">No accounts yet.<br>Use action 1 to add one.</div>';return;}
+  list.forEach(a=>{
+    const item=document.createElement('div'); item.className='inv-item';
+    item.onclick=()=>openActionSheet(a.email);
+    addSwipeActions(item, a);
+    const sc=a.status==='Available'?'badge-green':a.status==='Sold'?'badge-red':'badge-amber';
+    const isPS5=a.console==='PS5'||a.console==='Both PS4 & PS5';
+    const isPS4=a.console==='PS4'||a.console==='Both PS4 & PS5';
+    const p5free=(a.ps5Slots||[]).filter(s=>!s).length;
+    const p4free=(a.ps4Slots||[]).filter(s=>!s).length;
+    item.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:5px">
+        <div style="font-size:11px;font-weight:600;color:var(--blue);font-family:'DM Mono',monospace;word-break:break-all;flex:1">${a.email}</div>
+        <span class="badge ${sc}" style="flex-shrink:0">${a.status}</span>
+      </div>
+      <div style="display:flex;gap:4px;margin-bottom:5px;flex-wrap:wrap">
+        ${isPS5?`<span class="console-tag console-ps5">PS5 · ${p5free}/3 free</span>`:''}
+        ${isPS4?`<span class="console-tag console-ps4">PS4 · ${p4free}/3 free</span>`:''}
+        <span style="font-size:10px;color:var(--text3);padding:2px 0">${a.region}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px">${(a.games||[]).map(g=>`<span class="game-tag">${g}</span>`).join('')}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;color:var(--text3)">Cost: ${fmt(a.costTZS)}</span>
+        <span style="font-size:12px;font-weight:700;color:var(--green)">${fmt(a.actualSellTZS)}</span>
+      </div>`;
+    el.appendChild(item);
+  });
+}
+
+function filterInv(q){
+  const lq=q.toLowerCase();
+  renderInv(allAccounts.filter(a=>
+    a.email.toLowerCase().includes(lq)||
+    (a.console||'').toLowerCase().includes(lq)||
+    (a.games||[]).some(g=>g.toLowerCase().includes(lq))||
+    (a.region||'').toLowerCase().includes(lq)||
+    (a.status||'').toLowerCase().includes(lq)
+  ));
+}
+
+// ── PROFIT TAB ────────────────────────────────────────────────
+async function loadProfitTab() {
+  const res=await sheetAPI('getStats'); if(!res.success) return;
+  const s=res.stats, maxG=s.topGames.length?s.topGames[0][1]:1;
+  document.getElementById('profit-body').innerHTML=`
+    <div class="profit-card">
+      <h3>Total profit</h3>
+      <div class="big-num" style="color:var(--green)">${fmt(s.totalProfit)}</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px">${s.totalSlotsSold} slot${s.totalSlotsSold!==1?'s':''} sold across all accounts</div>
+    </div>
+    <div class="profit-grid">
+      <div class="profit-mini"><div class="val" style="color:var(--blue);font-size:13px">${fmt(s.totalInvested)}</div><div class="lbl">Invested</div></div>
+      <div class="profit-mini"><div class="val">${s.total}</div><div class="lbl">Accounts</div></div>
+      <div class="profit-mini"><div class="val" style="color:var(--green)">${s.available}</div><div class="lbl">Available</div></div>
+      <div class="profit-mini"><div class="val" style="color:var(--red)">${s.sold}</div><div class="lbl">Fully Sold</div></div>
+    </div>
+    <div class="profit-card">
+      <h3 style="margin-bottom:12px">Top games in inventory</h3>
+      ${s.topGames.map(([g,c])=>`
+        <div class="game-row-profit">
+          <span style="min-width:90px;font-size:12px;font-weight:500">${g}</span>
+          <div class="game-bar-wrap"><div class="game-bar" style="width:${Math.round(c/maxG*100)}%"></div></div>
+          <span style="font-size:12px;color:var(--text3);min-width:16px;text-align:right">${c}</span>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ── TABS ──────────────────────────────────────────────────────
+function switchTab(tab){
+  ['home','inventory','profit'].forEach(t=>{
+    document.getElementById('panel-'+t).style.display='none';
+    document.getElementById('tab-'+t).classList.remove('active');
+  });
+  document.getElementById('panel-'+tab).style.display='flex';
+  document.getElementById('tab-'+tab).classList.add('active');
+  // home tab selected — nothing extra needed
+  if(tab==='inventory') loadInventory();
+  if(tab==='profit') loadProfitTab();
+}
+
+
+// ── PULL TO REFRESH ───────────────────────────────────────────
+function initPTR(scrollEl, indicatorId, arrowId, textId, onRefresh) {
+  let startY = 0, pulling = false, triggered = false;
+  const THRESHOLD = 65;
+
+  scrollEl.addEventListener('touchstart', e => {
+    if(scrollEl.scrollTop === 0) {
+      startY = e.touches[0].clientY;
+      pulling = true;
+      triggered = false;
+    }
+  }, {passive:true});
+
+  scrollEl.addEventListener('touchmove', e => {
+    if(!pulling) return;
+    const dy = e.touches[0].clientY - startY;
+    if(dy <= 0) { pulling = false; return; }
+
+    const ind = document.getElementById(indicatorId);
+    const arrow = document.getElementById(arrowId);
+    const txt = document.getElementById(textId);
+    const progress = Math.min(dy / THRESHOLD, 1);
+    const translateY = Math.min(dy * 0.45, THRESHOLD * 0.7);
+
+    ind.style.transform = `translateY(${translateY - 52}px)`;
+    ind.style.opacity = progress;
+    ind.classList.add('visible');
+
+    if(dy >= THRESHOLD && !triggered) {
+      triggered = true;
+      arrow.classList.add('ready');
+      txt.textContent = 'Release to refresh';
+      if(navigator.vibrate) navigator.vibrate(10);
+    } else if(dy < THRESHOLD && triggered) {
+      triggered = false;
+      arrow.classList.remove('ready');
+      txt.textContent = 'Pull to refresh';
+    }
+  }, {passive:true});
+
+  scrollEl.addEventListener('touchend', async () => {
+    if(!pulling) return;
+    pulling = false;
+    const ind = document.getElementById(indicatorId);
+    const arrow = document.getElementById(arrowId);
+    const txt = document.getElementById(textId);
+
+    if(!triggered) {
+      // snap back
+      ind.style.transform = '';
+      ind.style.opacity = '';
+      ind.classList.remove('visible');
+      return;
+    }
+
+    // Show spinner
+    ind.style.transform = 'translateY(0)';
+    ind.classList.add('refreshing');
+    txt.textContent = 'Refreshing…';
+    arrow.classList.remove('ready');
+
+    await onRefresh();
+    if(navigator.vibrate) navigator.vibrate([10,50,10]);
+
+    // Fade out
+    ind.style.transition = 'opacity .3s ease, transform .3s ease';
+    ind.style.opacity = '0';
+    ind.style.transform = 'translateY(-52px)';
+    setTimeout(() => {
+      ind.classList.remove('visible','refreshing');
+      ind.style.transform = '';
+      ind.style.opacity = '';
+      ind.style.transition = '';
+      txt.textContent = 'Pull to refresh';
+    }, 320);
+
+    triggered = false;
+  });
+}
+
+async function ptrRefreshHome() {
+  const [statsRes, allRes, recentRes] = await Promise.all([
+    sheetAPI('getStats'),
+    sheetAPI('getAll'),
+    sheetAPI('getRecentSales')
+  ]);
+  if(statsRes.success) {
+    const s=statsRes.stats;
+    animateStat('s-total',s.total);
+    animateStat('s-avail',s.available);
+    animateStat('s-sold',s.sold);
+  }
+  allAccounts = (allRes.accounts||[]).sort((a,b)=>parseDate(b.dateAdded)-parseDate(a.dateAdded));
+  checkLowStock(allAccounts);
+  renderTodayCard(allAccounts, recentRes.sales||[]);
+  document.getElementById('conn-label').textContent = '✓ Sheet connected';
+}
+
+async function ptrRefreshInv() {
+  await loadInventory();
+  await refreshStats();
+}
+
+// ── TODAY SUMMARY CARD ────────────────────────────────────────
+// Render today card synchronously from already-fetched data (instant)
+function renderTodayCard(accounts, sales) {
+  const card = document.getElementById('today-card');
+  if(!card) return;
+  let freeSlots = 0;
+  (accounts||[]).forEach(a => {
+    const isPS5 = a.console==='PS5'||a.console==='Both PS4 & PS5';
+    const isPS4 = a.console==='PS4'||a.console==='Both PS4 & PS5';
+    if(isPS5) freeSlots += (a.ps5Slots||[]).filter(s=>!s).length;
+    if(isPS4) freeSlots += (a.ps4Slots||[]).filter(s=>!s).length;
+  });
+  document.getElementById('today-avail').textContent = freeSlots;
+  const today = new Date().toLocaleDateString('en-GB');
+  const todaySales = (sales||[]).filter(s => s.date === today);
+  const todayRev = todaySales.reduce((t,s)=>t+(s.price||0),0);
+  document.getElementById('today-slots').textContent =
+    todaySales.length + ' slot' + (todaySales.length!==1?'s':'') + ' sold';
+  document.getElementById('today-revenue').textContent =
+    todaySales.length ? fmt(todayRev) + ' earned' : 'No sales yet today';
+  card.style.display = 'block';
+}
+
+// Async version for pull-to-refresh (fetches its own recent sales)
+async function updateTodayCard(accounts) {
+  const res = await sheetAPI('getRecentSales');
+  renderTodayCard(accounts, res.sales||[]);
+}
+
+// ── SWIPE-TO-ACTION on inventory items ────────────────────────
+function addSwipeActions(item, account) {
+  let startX = 0, startY = 0, moved = false;
+  const SWIPE = 70;
+  item.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    moved = false;
+  }, {passive:true});
+  item.addEventListener('touchmove', e => {
+    const dx = e.touches[0].clientX - startX;
+    const dy = Math.abs(e.touches[0].clientY - startY);
+    if(dy > 20) return; // vertical scroll
+    if(dx < -20) {
+      moved = true;
+      const t = Math.max(dx, -SWIPE);
+      item.style.transform = `translateX(${t}px)`;
+      item.style.transition = 'none';
+    }
+  }, {passive:true});
+  item.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    item.style.transition = 'transform .2s ease';
+    if(dx < -SWIPE && moved) {
+      item.style.transform = 'translateX(0)';
+      if(navigator.vibrate) navigator.vibrate(15);
+      openActionSheet(account.email);
+    } else {
+      item.style.transform = 'translateX(0)';
+    }
+  });
+}
+
+// ── SETUP ─────────────────────────────────────────────────────
+function launchDemo(){
+  DEMO_MODE=true;
+  SHEET_URL='';
+  // Reset demo data to original state
+  demoDB=[
+    {email:'psstore22@gmail.com',password:'pass1234',console:'PS5',region:'R1',
+     games:['FIFA 24','GTA V'],costTZS:15000,targetSellTZS:30000,actualSellTZS:28000,
+     ps5Slots:[false,false,false],ps4Slots:[false,false,false],
+     backupCode1:'ABCD-1234',backupCode2:'EFGH-5678',backupCode3:'IJKL-9012',
+     status:'Available',dateAdded:'14/03/2026',notes:''},
+    {email:'gamerhub11@gmail.com',password:'gamer999',console:'Both PS4 & PS5',region:'R2',
+     games:['FIFA 24','Call of Duty'],costTZS:20000,targetSellTZS:35000,actualSellTZS:32000,
+     ps5Slots:[true,false,false],ps4Slots:[false,false,false],
+     backupCode1:'MNOP-3456',backupCode2:'QRST-7890',backupCode3:'UVWX-1234',
+     status:'Partial',dateAdded:'13/03/2026',dateSold:'',
+     slotHistory:[{console:'PS5',slot:1,price:32000,date:'14/03/2026'}],notes:''},
+    {email:'playzone55@gmail.com',password:'zone2024',console:'PS4',region:'R1',
+     games:['Spider-Man 2','GTA V'],costTZS:18000,targetSellTZS:35000,actualSellTZS:34000,
+     ps5Slots:[false,false,false],ps4Slots:[true,true,true],
+     backupCode1:'YZAB-5678',backupCode2:'CDEF-9012',backupCode3:'GHIJ-3456',
+     status:'Sold',dateAdded:'12/03/2026',dateSold:'13/03/2026',
+     slotHistory:[{console:'PS4',slot:1,price:34000,date:'12/03/2026'},{console:'PS4',slot:2,price:34000,date:'13/03/2026'},{console:'PS4',slot:3,price:34000,date:'13/03/2026'}],notes:''},
+    {email:'psking77@gmail.com',password:'king7777',console:'Both PS4 & PS5',region:'R1',
+     games:['NBA 2K25','FIFA 24'],costTZS:22000,targetSellTZS:38000,actualSellTZS:36000,
+     ps5Slots:[false,false,false],ps4Slots:[false,false,false],
+     backupCode1:'KLMN-7890',backupCode2:'OPQR-1234',backupCode3:'STUV-5678',
+     status:'Available',dateAdded:'14/03/2026',notes:''},
+    {email:'gamestore99@gmail.com',password:'store9999',console:'PS5',region:'R2',
+     games:['God of War','Spider-Man'],costTZS:16000,targetSellTZS:30000,actualSellTZS:28000,
+     ps5Slots:[true,false,false],ps4Slots:[false,false,false],
+     backupCode1:'WXYZ-1111',backupCode2:'ABCD-2222',backupCode3:'EFGH-3333',
+     status:'Partial',dateAdded:'11/03/2026',dateSold:'',
+     slotHistory:[{console:'PS5',slot:1,price:28000,date:'14/03/2026'}],notes:''},
+  ];
+  launchApp();
+}
+
+function exitDemo(){
+  DEMO_MODE=false;
+  showScreen('screen-setup');
+}
+
+function connectApp(){
+  const key=document.getElementById('gemini-key').value.trim();
+  const url=document.getElementById('sheet-url').value.trim();
+  if(!url){alert('Please add your Google Sheets URL.');return;}
+  if(key){GEMINI_KEY=key;localStorage.setItem('psn_gemini_key',key);}
+  SHEET_URL=url;
+  localStorage.setItem('psn_sheet_url',url);
+  launchApp();
+}
+
+
+async function launchApp(){
+  showScreen('screen-app');
+  if(DEMO_MODE){
+    document.getElementById('conn-label').textContent='Demo mode — data not saved';
+    const demoBanner=document.getElementById('demo-banner');
+    if(demoBanner) demoBanner.style.display='flex';
+  } else {
+    document.getElementById('conn-label').textContent='Connecting…';
+    const demoBanner=document.getElementById('demo-banner');
+    if(demoBanner) demoBanner.style.display='none';
+  }
+  // Fetch everything in parallel — faster load, today card shows with accounts
+  const [statsRes, allRes, recentRes] = await Promise.all([
+    sheetAPI('getStats'),
+    sheetAPI('getAll'),
+    sheetAPI('getRecentSales')
+  ]);
+  // Stats
+  if(statsRes.error){
+    document.getElementById('conn-label').textContent='⚠ '+statsRes.error;
+  } else if(statsRes.success){
+    const s=statsRes.stats;
+    ['s-total','s-avail','s-sold','s-profit'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.classList.remove('skel','skel-line');el.style.width='';el.style.margin='';}
+    });
+    animateStat('s-total',s.total);
+    animateStat('s-avail',s.available);
+    animateStat('s-sold',s.sold);
+    const c=CURRENCIES[CURRENCY]||CURRENCIES.TZS;
+    const rawProfit=s.totalProfit||0;
+    const profitConverted=rawProfit*c.rate;
+    let profitStr;
+    if(c.code==='USD'){
+      profitStr=profitConverted>=1000?'$'+(profitConverted/1000).toFixed(1)+'K':profitConverted>=0?'$'+profitConverted.toFixed(0):'-$'+Math.abs(profitConverted).toFixed(0);
+    } else {
+      const abs=Math.abs(rawProfit),sign=rawProfit<0?'-':'';
+      profitStr=abs>=1000000?sign+(abs/1000000).toFixed(1)+'M':abs>=1000?sign+Math.round(abs/1000)+'K':sign+abs;
+    }
+    document.getElementById('s-profit').textContent=profitStr;
+    document.getElementById('conn-label').textContent='✓ Sheet · Claude AI';
+  }
+  // Accounts
+  if(!allRes.error){
+    allAccounts=(allRes.accounts||[]).sort((a,b)=>parseDate(b.dateAdded)-parseDate(a.dateAdded));
+    checkLowStock(allAccounts);
+  }
+  // Today card — instant, no extra call
+  renderTodayCard(allAccounts, recentRes.sales||[]);
+  // Init pull-to-refresh
+  initPTR(document.getElementById('home-scroll'),'ptr-home-ind','ptr-home-arrow','ptr-home-text', ptrRefreshHome);
+  initPTR(document.getElementById('inv-list'),'ptr-inv-ind','ptr-inv-arrow','ptr-inv-text', ptrRefreshInv);
+}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  if(GEMINI_KEY) document.getElementById('gemini-key').value=GEMINI_KEY;
+  if(SHEET_URL)  document.getElementById('sheet-url').value=SHEET_URL;
+  // Init currency toggle
+  const tog = document.getElementById('curr-toggle');
+  if(tog) tog.classList.toggle('usd', CURRENCY==='USD');
+  // Init all currency labels
+  document.querySelectorAll('.currency-label').forEach(el=>{
+    el.textContent='('+CURRENCY+')';
+  });
+  applyDark();
+  if(SHEET_URL) launchApp();
+});
+</script>
+</body>
+</html>

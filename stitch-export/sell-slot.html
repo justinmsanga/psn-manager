@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sell Slot - PSN Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#303033",
+                        "tertiary-fixed": "#d4e3ff",
+                        "on-surface": "#e2e2e9",
+                        "outline-variant": "#45474a",
+                        "surface": "#111318",
+                        "tertiary": "#a4c9ff",
+                        "inverse-surface": "#e2e2e9",
+                        "surface-container-highest": "#33353a",
+                        "surface-container-high": "#282a2f",
+                        "on-tertiary-fixed-variant": "#004883",
+                        "on-tertiary-container": "#2f7cce",
+                        "tertiary-fixed-dim": "#a4c9ff",
+                        "on-error-container": "#ffdad6",
+                        "on-error": "#690005",
+                        "surface-bright": "#37393f",
+                        "outline": "#909094",
+                        "on-secondary-fixed-variant": "#005137",
+                        "on-surface-variant": "#c6c6ca",
+                        "error": "#ffb4ab",
+                        "error-container": "#93000a",
+                        "secondary-fixed-dim": "#45dfa4",
+                        "primary-container": "#0b0c0e",
+                        "secondary-container": "#00bd85",
+                        "tertiary-container": "#000c1e",
+                        "on-primary-container": "#7a7a7c",
+                        "on-tertiary": "#00315d",
+                        "surface-variant": "#33353a",
+                        "on-primary-fixed-variant": "#464749",
+                        "background": "#111318",
+                        "on-tertiary-fixed": "#001c39",
+                        "secondary": "#45dfa4",
+                        "inverse-on-surface": "#2e3036",
+                        "surface-tint": "#c7c6c9",
+                        "inverse-primary": "#5e5e61",
+                        "primary-fixed-dim": "#c7c6c9",
+                        "primary": "#c7c6c9",
+                        "surface-container-low": "#1a1b21",
+                        "surface-container-lowest": "#0c0e13",
+                        "secondary-fixed": "#68fcbf",
+                        "on-background": "#e2e2e9",
+                        "on-secondary-container": "#00452e",
+                        "surface-container": "#1e2025",
+                        "on-primary-fixed": "#1b1c1e",
+                        "on-secondary": "#003825",
+                        "surface-dim": "#111318",
+                        "on-secondary-fixed": "#002114",
+                        "primary-fixed": "#e3e2e5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "margin-mobile": "16px",
+                        "unit": "4px",
+                        "margin-desktop": "32px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "data-tabular": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-sm": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "data-tabular": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0B0C0E;
+            color: #e2e2e9;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: #16181D;
+            border: 1px solid #262932;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #111318;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #262932;
+            border-radius: 10px;
+        }
+        .tap-highlight-transparent {
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface custom-scrollbar">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gutter h-14 bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional high-contrast avatar portrait of a business administrator in a dark studio setting. The lighting is moody and focused, with deep obsidian shadows and crisp highlights. The overall aesthetic is serious, authoritative, and minimalist, matching a premium dark-mode dashboard interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC348pZ75f6oUl5gqB9LeLMX4v8agSlvuVo4QEXLGU5HXO2-7Zo65B8Vae2DmabEp2gRWcS869c2e_OOXtLEOdEMIi0IAVrSPVi_99rp6vdgMW9e8H9bkn1xBj0W173fThZ6LaLwbCeSn8mXSeUeyrqFE5ZyguNQPvIOCS6CdGxSPxNfT5u9ybGJ2eB9Spz8dmR63I9mYBNoUxTBhtzmvFf_rfsUGKJaSjygrPKw-WKZv0J_I8WtXKSO-imr2ul_xgqf3Mt4xvuX_o"/>
+</div>
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface">PSN Admin</h1>
+</div>
+<button class="hover:bg-surface-container-high rounded-full p-2 text-on-surface transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</header>
+<main class="pt-20 pb-24 px-gutter max-w-container-max mx-auto">
+<!-- Workflow Progress (Visual) -->
+<div class="flex items-center justify-between mb-8 overflow-x-auto pb-2 gap-4">
+<div class="flex items-center gap-2 flex-shrink-0">
+<span class="w-6 h-6 rounded-full bg-secondary text-on-secondary flex items-center justify-center text-[10px] font-bold">1</span>
+<span class="font-label-md text-label-md text-secondary">Game</span>
+</div>
+<div class="h-[1px] w-8 bg-outline-variant flex-shrink-0"></div>
+<div class="flex items-center gap-2 flex-shrink-0">
+<span class="w-6 h-6 rounded-full bg-secondary text-on-secondary flex items-center justify-center text-[10px] font-bold">2</span>
+<span class="font-label-md text-label-md text-secondary">Account</span>
+</div>
+<div class="h-[1px] w-8 bg-outline-variant flex-shrink-0"></div>
+<div class="flex items-center gap-2 flex-shrink-0">
+<span class="w-6 h-6 rounded-full bg-primary-container border border-secondary text-secondary flex items-center justify-center text-[10px] font-bold">3</span>
+<span class="font-label-md text-label-md text-on-surface">Console</span>
+</div>
+<div class="h-[1px] w-8 bg-outline-variant flex-shrink-0"></div>
+<div class="flex items-center gap-2 flex-shrink-0">
+<span class="w-6 h-6 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center text-[10px] font-bold">4</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Slot</span>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Left Column: Context & Selection -->
+<div class="lg:col-span-4 space-y-6">
+<!-- Step 1: Selected Game -->
+<section class="glass-card p-6 rounded-xl">
+<div class="flex items-center justify-between mb-4">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Selected Game</h2>
+<button class="text-secondary font-label-md text-label-md hover:underline">Change</button>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-low p-3 rounded-lg border border-outline-variant">
+<div class="w-16 h-20 rounded bg-surface-container-highest overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Official high-quality game cover art for FIFA 25 featuring a professional football player in an action pose. The image is vivid and high-resolution, set against a dark, tech-inspired background with sharp neon accents. The visual style is premium and corporate, fitting for a professional gaming administrative tool." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDs_mkmaiRPbkSokg5zCnFflRv5XBvo346It-fAqpJl-kNzpDxBoVmn9SC02JX-hyIZIDrmx66LDN04kFhcWXDGfaU77SGDvcQZjvnejIZKf6I8r4mwzhyEDBdfgLwyOHSTcylC8kZsvcVtBjv_BdfJ0ENzd-E1CsK97LPZIph3rumU5MNy8lLDWdvxsvararnKADp8alXpE398tsTBoOsgOy32tXLEo1K3Dak-1jsglwkW0rhoE-TtvNi-c3F1b8o6HW_cCndDoPU"/>
+</div>
+<div>
+<p class="font-headline-sm text-headline-sm text-on-surface">FIFA 25</p>
+<p class="font-label-md text-label-md text-on-surface-variant">Standard Edition</p>
+</div>
+</div>
+</section>
+<!-- Step 3: Console Selector -->
+<section class="glass-card p-6 rounded-xl">
+<h2 class="font-headline-sm text-headline-sm text-on-surface mb-4">Step 3: Console Selector</h2>
+<div class="flex p-1 bg-surface-container-lowest border border-outline-variant rounded-lg">
+<button class="flex-1 py-2 font-label-md text-label-md rounded-md bg-surface-container-high text-secondary font-bold border border-secondary shadow-sm transition-all">
+                            PS4
+                        </button>
+<button class="flex-1 py-2 font-label-md text-label-md rounded-md text-on-surface-variant hover:text-on-surface transition-all">
+                            PS5
+                        </button>
+</div>
+<div class="mt-4 flex items-center gap-2 p-3 bg-secondary-container/10 border border-secondary/20 rounded-lg">
+<span class="material-symbols-outlined text-secondary text-sm">info</span>
+<p class="font-label-md text-label-md text-secondary">PS4 availability is higher for this title.</p>
+</div>
+</section>
+</div>
+<!-- Middle Column: Account Selector -->
+<div class="lg:col-span-8 space-y-6">
+<!-- Step 2: Account Selector -->
+<section class="glass-card p-6 rounded-xl">
+<div class="flex items-center justify-between mb-4">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Step 2: Matching Accounts</h2>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+<input class="bg-surface-container-lowest border border-outline-variant rounded-lg pl-10 pr-4 py-1.5 text-body-md font-body-md focus:border-secondary focus:ring-0 w-48" placeholder="Filter accounts..." type="text"/>
+</div>
+</div>
+<div class="space-y-3">
+<!-- Account Row 1 -->
+<div class="p-4 rounded-xl border border-secondary bg-secondary/5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer hover:bg-secondary/10 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div>
+<p class="font-headline-sm text-headline-sm text-on-surface">fifa_master_01@psn.com</p>
+<div class="flex gap-3 mt-1">
+<span class="text-on-surface-variant font-label-md text-label-md">Profit: <span class="text-secondary">$120.00</span></span>
+<span class="text-on-surface-variant font-label-md text-label-md">•</span>
+<span class="text-on-surface-variant font-label-md text-label-md">Purchased: 12/09/24</span>
+</div>
+</div>
+</div>
+<div class="flex gap-4 border-t md:border-t-0 md:border-l border-outline-variant pt-3 md:pt-0 md:pl-6">
+<div class="text-center">
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">PS4 Slots</p>
+<p class="font-display-sm text-display-sm text-secondary">1</p>
+</div>
+<div class="text-center">
+<p class="font-label-md text-label-md text-on-surface-variant uppercase opacity-50">PS5 Slots</p>
+<p class="font-display-sm text-display-sm text-on-surface-variant opacity-50">0</p>
+</div>
+</div>
+</div>
+<!-- Account Row 2 -->
+<div class="p-4 rounded-xl border border-outline-variant bg-surface-container-low flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer hover:border-on-surface-variant transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div>
+<p class="font-headline-sm text-headline-sm text-on-surface">ultra_gaming_99@outlook.com</p>
+<div class="flex gap-3 mt-1">
+<span class="text-on-surface-variant font-label-md text-label-md">Profit: <span class="text-secondary">$85.50</span></span>
+<span class="text-on-surface-variant font-label-md text-label-md">•</span>
+<span class="text-on-surface-variant font-label-md text-label-md">Purchased: 05/10/24</span>
+</div>
+</div>
+</div>
+<div class="flex gap-4 border-t md:border-t-0 md:border-l border-outline-variant pt-3 md:pt-0 md:pl-6">
+<div class="text-center">
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">PS4 Slots</p>
+<p class="font-display-sm text-display-sm text-on-surface">2</p>
+</div>
+<div class="text-center">
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">PS5 Slots</p>
+<p class="font-display-sm text-display-sm text-on-surface">1</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Step 4 & 5: Slot and Sale Form -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Step 4: Slot Suggester -->
+<section class="glass-card p-6 rounded-xl flex flex-col">
+<h2 class="font-headline-sm text-headline-sm text-on-surface mb-4">Step 4: Slot Suggester</h2>
+<div class="flex-grow">
+<div class="bg-secondary/10 border-l-4 border-secondary p-4 rounded-r-lg mb-4">
+<p class="font-headline-sm text-headline-sm text-secondary mb-1">Recommended: Normal Slot 2</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Account "fifa_master_01" has Normal Slot 1 occupied. Normal Slot 2 is currently empty and provides immediate activation for the buyer.</p>
+</div>
+<div class="space-y-2">
+<label class="flex items-center gap-3 p-3 rounded-lg border border-secondary bg-secondary/5 cursor-pointer">
+<input checked="" class="text-secondary focus:ring-0 bg-transparent" name="slot" type="radio"/>
+<span class="font-body-md text-body-md text-on-surface">Normal Slot 2</span>
+<span class="ml-auto font-label-md text-label-md bg-secondary text-on-secondary px-2 py-0.5 rounded-full uppercase">Optimal</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg border border-outline-variant hover:bg-surface-container-low cursor-pointer transition-colors">
+<input class="text-secondary focus:ring-0 bg-transparent" name="slot" type="radio"/>
+<span class="font-body-md text-body-md text-on-surface">Reset Slot</span>
+</label>
+</div>
+</div>
+</section>
+<!-- Step 5: Final Details Form -->
+<section class="glass-card p-6 rounded-xl">
+<h2 class="font-headline-sm text-headline-sm text-on-surface mb-4">Step 5: Sale Details</h2>
+<form class="space-y-4">
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Sale Price</label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">$</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-8 pr-4 py-2 text-headline-sm font-headline-sm text-secondary focus:border-secondary focus:ring-0" type="text" value="45.00"/>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Customer Name</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 text-body-md font-body-md focus:border-secondary focus:ring-0" placeholder="John Doe" type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Sold By</label>
+<div class="bg-surface-container-high border border-outline-variant rounded-lg px-4 py-2 text-body-md font-body-md text-on-surface">
+                                        Admin B
+                                    </div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Payment</label>
+<select class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 text-body-md font-body-md focus:border-secondary focus:ring-0 appearance-none">
+<option>Paid</option>
+<option>Partial</option>
+</select>
+</div>
+</div>
+</form>
+</section>
+</div>
+<!-- Action Button -->
+<div class="pt-4">
+<button class="w-full py-5 bg-secondary text-on-secondary font-display-sm text-display-sm rounded-xl shadow-lg shadow-secondary/20 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+<span class="material-symbols-outlined">point_of_sale</span>
+                        Confirm $45.00 Sale
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter h-14 bg-surface border-t border-outline-variant">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors w-full h-full" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dash</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors w-full h-full" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-md text-label-md">Money</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors w-full h-full" href="#">
+<span class="material-symbols-outlined">manage_accounts</span>
+<span class="font-label-md text-label-md">Accounts</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary font-bold transition-colors duration-200 w-full h-full border-t-2 border-secondary bg-secondary/5" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">sell</span>
+<span class="font-label-md text-label-md">Sell</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors w-full h-full" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions for buttons and tabs
+        document.querySelectorAll('button, a').forEach(el => {
+            el.addEventListener('mousedown', () => {
+                el.style.transform = 'scale(0.97)';
+            });
+            el.addEventListener('mouseup', () => {
+                el.style.transform = 'scale(1)';
+            });
+            el.addEventListener('mouseleave', () => {
+                el.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body></html>

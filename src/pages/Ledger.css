@@ -1,0 +1,32 @@
+.ledger-page { padding: 18px 16px 28px; max-width: 760px; margin: 0 auto; }
+.page-top { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px; }
+.page-top h1 { font-size:28px; margin:2px 0; }
+.page-top p { color:var(--text-tertiary); font-size:13px; }
+.icon-shell { width:42px; height:42px; border-radius:14px; border:1px solid var(--border); color:var(--text-primary); background:var(--bg-secondary); display:grid; place-items:center; }
+.ledger-balance-card, .control-card, .ledger-row { background:rgba(17,19,24,.92); border:1px solid var(--border); border-radius:18px; }
+[data-theme='light'] .ledger-balance-card, [data-theme='light'] .control-card, [data-theme='light'] .ledger-row { background:var(--bg-secondary); }
+.ledger-balance-card { padding:20px; margin-bottom:14px; }
+.ledger-balance-card > span { color:var(--text-tertiary); text-transform:uppercase; font-size:11px; font-weight:800; letter-spacing:.1em; }
+.ledger-balance-card > strong { display:block; font-size:36px; line-height:1; margin:10px 0 18px; letter-spacing:-.04em; }
+.ledger-balance-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.ledger-balance-grid div { background:var(--bg-tertiary); border:1px solid var(--border); border-radius:13px; padding:10px; min-width:0; }
+.ledger-balance-grid small { display:block; color:var(--text-tertiary); font-size:10px; }
+.ledger-balance-grid b { display:block; font-size:12px; margin-top:3px; overflow:hidden; text-overflow:ellipsis; }
+.control-card { padding:12px; margin-bottom:14px; }
+.search-control { height:44px; display:flex; align-items:center; gap:10px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:13px; padding:0 12px; }
+.search-control input { flex:1; border:0; outline:0; background:transparent; color:var(--text-primary); min-width:0; }
+.chip-scroll { display:flex; gap:8px; overflow-x:auto; padding-top:10px; scrollbar-width:none; }
+.chip-scroll button { white-space:nowrap; border:1px solid var(--border); background:var(--bg-tertiary); color:var(--text-secondary); border-radius:999px; padding:8px 11px; font-size:12px; text-transform:capitalize; }
+.chip-scroll button.active { background:var(--success); color:#002114; border-color:var(--success); font-weight:800; }
+.ledger-list { display:flex; flex-direction:column; gap:10px; }
+.ledger-row { display:flex; align-items:center; gap:12px; padding:13px; }
+.ledger-icon { width:40px; height:40px; border-radius:13px; display:grid; place-items:center; flex-shrink:0; }
+.ledger-icon.positive { background:var(--success-soft); color:var(--success); }
+.ledger-icon.negative { background:var(--danger-soft); color:var(--danger); }
+.ledger-info { flex:1; min-width:0; }
+.ledger-info strong, .ledger-info span { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ledger-info strong { font-size:13px; }
+.ledger-info span { color:var(--text-tertiary); font-size:11px; text-transform:capitalize; }
+.ledger-amount { font-size:13px; font-weight:900; }
+.ledger-amount.positive { color:var(--success); }
+.ledger-amount.negative { color:var(--danger); }

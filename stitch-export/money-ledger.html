@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PSN Admin - Money Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary": "#303033",
+                    "tertiary-fixed": "#d4e3ff",
+                    "on-surface": "#e2e2e9",
+                    "outline-variant": "#45474a",
+                    "surface": "#111318",
+                    "tertiary": "#a4c9ff",
+                    "inverse-surface": "#e2e2e9",
+                    "surface-container-highest": "#33353a",
+                    "surface-container-high": "#282a2f",
+                    "on-tertiary-fixed-variant": "#004883",
+                    "on-tertiary-container": "#2f7cce",
+                    "tertiary-fixed-dim": "#a4c9ff",
+                    "on-error-container": "#ffdad6",
+                    "on-error": "#690005",
+                    "surface-bright": "#37393f",
+                    "outline": "#909094",
+                    "on-secondary-fixed-variant": "#005137",
+                    "on-surface-variant": "#c6c6ca",
+                    "error": "#ffb4ab",
+                    "error-container": "#93000a",
+                    "secondary-fixed-dim": "#45dfa4",
+                    "primary-container": "#0b0c0e",
+                    "secondary-container": "#00bd85",
+                    "tertiary-container": "#000c1e",
+                    "on-primary-container": "#7a7a7c",
+                    "on-tertiary": "#00315d",
+                    "surface-variant": "#33353a",
+                    "on-primary-fixed-variant": "#464749",
+                    "background": "#111318",
+                    "on-tertiary-fixed": "#001c39",
+                    "secondary": "#45dfa4",
+                    "inverse-on-surface": "#2e3036",
+                    "surface-tint": "#c7c6c9",
+                    "inverse-primary": "#5e5e61",
+                    "primary-fixed-dim": "#c7c6c9",
+                    "primary": "#c7c6c9",
+                    "surface-container-low": "#1a1b21",
+                    "surface-container-lowest": "#0c0e13",
+                    "secondary-fixed": "#68fcbf",
+                    "on-background": "#e2e2e9",
+                    "on-secondary-container": "#00452e",
+                    "surface-container": "#1e2025",
+                    "on-primary-fixed": "#1b1c1e",
+                    "on-secondary": "#003825",
+                    "surface-dim": "#111318",
+                    "on-secondary-fixed": "#002114",
+                    "primary-fixed": "#e3e2e5"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "margin-mobile": "16px",
+                    "unit": "4px",
+                    "margin-desktop": "32px",
+                    "container-max": "1280px"
+            },
+            "fontFamily": {
+                    "body-md": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "display-sm": ["Inter"],
+                    "label-md": ["Inter"],
+                    "data-tabular": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "display-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display-sm": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "data-tabular": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0B0C0E;
+            color: #E2E2E9;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .ledger-row {
+            border-bottom: 1px solid #262932;
+            transition: background-color 0.2s ease;
+        }
+        .ledger-row:hover {
+            background-color: #1C1E26;
+        }
+        .fab-shadow {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+        .glass-summary {
+            backdrop-filter: blur(8px);
+            background: rgba(22, 24, 29, 0.9);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-body-md pb-32">
+<!-- Top Navigation Shell -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gutter h-14 bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-secondary border border-outline-variant">
+<span class="material-symbols-outlined text-[20px]">person</span>
+</div>
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface">PSN Admin</h1>
+</div>
+<button class="hover:bg-surface-container-high rounded-full p-2 transition-colors">
+<span class="material-symbols-outlined text-on-surface" data-icon="notifications">notifications</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="mt-14 pt-4">
+<!-- Sticky Summary Header -->
+<div class="sticky top-14 z-40 glass-summary border-b border-outline-variant px-gutter py-6">
+<p class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider mb-1">Available Balance</p>
+<h2 class="font-display-lg text-display-lg text-secondary">$12,450.82</h2>
+<!-- Horizontal Filter Chips -->
+<div class="flex overflow-x-auto gap-2 mt-6 custom-scrollbar -mx-gutter px-gutter">
+<button class="px-4 py-1.5 rounded-full bg-secondary text-on-secondary font-label-md text-label-md whitespace-nowrap">All</button>
+<button class="px-4 py-1.5 rounded-full bg-surface-container-high border border-outline-variant text-on-surface-variant font-label-md text-label-md whitespace-nowrap hover:bg-surface-container-highest">Capital</button>
+<button class="px-4 py-1.5 rounded-full bg-surface-container-high border border-outline-variant text-on-surface-variant font-label-md text-label-md whitespace-nowrap hover:bg-surface-container-highest">Purchases</button>
+<button class="px-4 py-1.5 rounded-full bg-surface-container-high border border-outline-variant text-on-surface-variant font-label-md text-label-md whitespace-nowrap hover:bg-surface-container-highest">Deposits</button>
+<button class="px-4 py-1.5 rounded-full bg-surface-container-high border border-outline-variant text-on-surface-variant font-label-md text-label-md whitespace-nowrap hover:bg-surface-container-highest">Sales</button>
+<button class="px-4 py-1.5 rounded-full bg-surface-container-high border border-outline-variant text-on-surface-variant font-label-md text-label-md whitespace-nowrap hover:bg-surface-container-highest">Withdrawals</button>
+<button class="px-4 py-1.5 rounded-full bg-surface-container-high border border-outline-variant text-on-surface-variant font-label-md text-label-md whitespace-nowrap hover:bg-surface-container-highest">Expenses</button>
+</div>
+</div>
+<!-- Ledger List -->
+<div class="px-gutter mt-4">
+<div class="space-y-1">
+<!-- Row 1: Sale -->
+<div class="ledger-row p-4 flex items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-secondary-container/10 border border-secondary/20 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface">FIFA 25 Sale</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-secondary/10 text-secondary uppercase">Sale</span>
+</div>
+<p class="text-on-surface-variant font-label-md text-label-md">alex.j@gmail.com • 14:20</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-data-tabular text-headline-md text-secondary">+$69.99</p>
+<p class="text-on-surface-variant font-label-md text-label-md">Admin A</p>
+</div>
+</div>
+<!-- Row 2: Purchase -->
+<div class="ledger-row p-4 flex items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-error-container/10 border border-error/20 flex items-center justify-center text-error">
+<span class="material-symbols-outlined" data-icon="remove">remove</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface">PS Plus Yearly</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-error/10 text-error uppercase">Purchase</span>
+</div>
+<p class="text-on-surface-variant font-label-md text-label-md">main_hub@psn.co • 12:45</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-data-tabular text-headline-md text-on-surface">-$119.99</p>
+<p class="text-on-surface-variant font-label-md text-label-md">Admin B</p>
+</div>
+</div>
+<!-- Row 3: Withdrawal -->
+<div class="ledger-row p-4 flex items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest border border-outline-variant flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface">Bank Withdrawal</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-surface-container-highest text-on-surface-variant uppercase">Payout</span>
+</div>
+<p class="text-on-surface-variant font-label-md text-label-md">Internal Transfer • 09:15</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-data-tabular text-headline-md text-on-surface-variant">-$500.00</p>
+<p class="text-on-surface-variant font-label-md text-label-md">Admin A</p>
+</div>
+</div>
+<!-- Row 4: Sale -->
+<div class="ledger-row p-4 flex items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-secondary-container/10 border border-secondary/20 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface">Elden Ring DLC</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-secondary/10 text-secondary uppercase">Sale</span>
+</div>
+<p class="text-on-surface-variant font-label-md text-label-md">shadow_king@live.com • Yesterday</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-data-tabular text-headline-md text-secondary">+$39.99</p>
+<p class="text-on-surface-variant font-label-md text-label-md">Admin B</p>
+</div>
+</div>
+<!-- Row 5: Expense -->
+<div class="ledger-row p-4 flex items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-error-container/10 border border-error/20 flex items-center justify-center text-error">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface">Server Hosting</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-error/10 text-error uppercase">Expense</span>
+</div>
+<p class="text-on-surface-variant font-label-md text-label-md">AWS Infrastructure • Oct 24</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-data-tabular text-headline-md text-on-surface">-$45.50</p>
+<p class="text-on-surface-variant font-label-md text-label-md">System</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed right-6 bottom-32 w-14 h-14 bg-secondary text-on-secondary rounded-full flex items-center justify-center fab-shadow active:scale-95 transition-all z-40">
+<span class="material-symbols-outlined text-[32px]" data-icon="add">add</span>
+</button>
+<!-- Bottom Summary Strip -->
+<div class="fixed bottom-14 left-0 w-full h-10 bg-surface-container-low border-t border-outline-variant flex items-center justify-between px-gutter z-50">
+<div class="flex gap-4">
+<span class="text-secondary font-label-md text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+                In: $1,200
+            </span>
+<span class="text-error font-label-md text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">arrow_downward</span>
+                Out: $450
+            </span>
+</div>
+<div class="text-on-surface font-label-md text-label-md font-bold">
+            Net: +$750
+        </div>
+</div>
+<!-- Global Bottom Nav -->
+<nav class="fixed bottom-0 left-0 w-full z-50 h-14 bg-surface flex justify-around items-center px-gutter border-t border-outline-variant">
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dash</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary font-bold transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="payments" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span class="font-label-md text-label-md">Money</span>
+<div class="w-1 h-1 bg-secondary rounded-full mt-0.5"></div>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="manage_accounts">manage_accounts</span>
+<span class="font-label-md text-label-md">Accounts</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="sell">sell</span>
+<span class="font-label-md text-label-md">Sell</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-md text-label-md">Reports</span>
+</button>
+</nav>
+<script>
+        // Micro-interaction for filter chips
+        const chips = document.querySelectorAll('.custom-scrollbar button');
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                chips.forEach(c => {
+                    c.classList.remove('bg-secondary', 'text-on-secondary');
+                    c.classList.add('bg-surface-container-high', 'border', 'border-outline-variant', 'text-on-surface-variant');
+                });
+                chip.classList.remove('bg-surface-container-high', 'border', 'border-outline-variant', 'text-on-surface-variant');
+                chip.classList.add('bg-secondary', 'text-on-secondary');
+            });
+        });
+
+        // FAB Tap Effect
+        const fab = document.querySelector('.fab-shadow');
+        fab.addEventListener('click', () => {
+            fab.classList.add('scale-90');
+            setTimeout(() => fab.classList.remove('scale-90'), 100);
+        });
+    </script>
+</body></html>

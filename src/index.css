@@ -1,0 +1,172 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap');
+
+:root {
+  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  
+  /* Nexus Stitch palette */
+  --bg-primary: #f7f8fa;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #eef1f5;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #94a3b8;
+  
+  --accent: #2f7cce;
+  --accent-foreground: #ffffff;
+  --accent-soft: #eff6ff;
+  
+  --success: #00bd85;
+  --success-soft: #ecfdf5;
+  --danger: #ef4444;
+  --danger-soft: #fef2f2;
+  --warning: #f59e0b;
+  --warning-soft: #fffbeb;
+  
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
+  
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 12px 24px rgba(15, 23, 42, 0.12);
+  
+  --nav-height: 80px;
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+
+[data-theme='dark'] {
+  --bg-primary: #0b0c0e;
+  --bg-secondary: #111318;
+  --bg-tertiary: #1a1b21;
+  --text-primary: #e2e2e9;
+  --text-secondary: #c6c6ca;
+  --text-tertiary: #909094;
+  
+  --accent: #a4c9ff;
+  --accent-soft: rgba(164, 201, 255, 0.14);
+  --success: #00bd85;
+  --success-soft: rgba(69, 223, 164, 0.14);
+  --danger: #f43f5e;
+  --danger-soft: rgba(244, 63, 94, 0.15);
+  --warning: #f59e0b;
+  --warning-soft: rgba(245, 158, 11, 0.15);
+  
+  --border: #262932;
+  --border-strong: #45474a;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+button {
+  font-family: var(--font-main);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+input, textarea {
+  font-family: var(--font-main);
+}
+
+/* Global Animation Helpers */
+.fade-in { animation: fadeIn 0.4s ease-out forwards; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Glassmorphism Classes */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+[data-theme='dark'] .glass {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] body {
+  background:
+    radial-gradient(circle at 50% -10%, rgba(47, 124, 206, 0.16), transparent 34rem),
+    var(--bg-primary);
+}
+
+/* Mobile responsiveness pass */
+html, body, #root { width: 100%; min-width: 0; }
+button, input, select, textarea { max-width: 100%; }
+.page-top, .details-top, .account-head, .match-top, .section-head, .wallet-row, .wallet-amount-row { min-width: 0; }
+.page-top > div, .details-top > div, .account-head > div, .match-top > div, .admin-cluster > div { min-width: 0; }
+
+@media (max-width: 430px) {
+  :root { --nav-height: 72px; }
+  .shell-content { padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + 14px); }
+  .nexus-dashboard, .ledger-page, .accounts-page, .sell-page, .details-page, .reports-page, .settings-page { padding-left: 12px; padding-right: 12px; }
+  .page-top h1 { font-size: 24px; }
+  .page-top p, .admin-cluster p { font-size: 11px; line-height: 1.35; }
+  .icon-shell, .topbar-actions button { width: 44px; height: 44px; flex: 0 0 44px; }
+  .wallet-panel { padding: 18px; }
+  .wallet-row { align-items: flex-start; gap: 10px; }
+  .growth-chip { font-size: 9px; padding: 4px 7px; white-space: nowrap; }
+  .wallet-amount-row h2, .ledger-balance-card > strong, .report-hero strong { font-size: 30px; overflow-wrap: anywhere; word-break: break-word; }
+  .wallet-foot, .quick-action-grid, .detail-actions, .ledger-balance-grid { gap: 8px; }
+  .quick-action-grid, .detail-actions { grid-template-columns: repeat(2, 1fr); }
+  .nexus-action strong { font-size: 10px; white-space: normal; text-align: center; min-height: 24px; }
+  .metric-grid, .report-grid, .detail-money, .game-select-grid, .slot-choice-grid, .ledger-balance-grid { grid-template-columns: 1fr 1fr; }
+  .metric-card strong { font-size: 15px; overflow-wrap: anywhere; }
+  .sale-amount, .ledger-amount { font-size: 12px; overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
+  .control-card { padding: 10px; }
+  .chip-scroll button { padding: 7px 10px; font-size: 11px; }
+  .account-money { grid-template-columns: 1fr 1fr; }
+  .account-money b { font-size: 13px; }
+  .inline-add-account { padding: 13px; }
+  .inline-add-head h3 { font-size: 16px; }
+}
+
+input, select, textarea {
+  font-size: 16px;
+}
+
+@media (max-width: 360px) {
+  .nexus-dashboard, .ledger-page, .accounts-page, .sell-page, .details-page, .reports-page, .settings-page { padding-left: 10px; padding-right: 10px; }
+  .admin-avatar { display: none; }
+  .wallet-amount-row h2, .ledger-balance-card > strong, .report-hero strong { font-size: 26px; }
+  .metric-grid, .report-grid, .detail-money, .game-select-grid, .slot-choice-grid, .ledger-balance-grid { grid-template-columns: 1fr; }
+  .quick-action-grid, .detail-actions { grid-template-columns: repeat(2, 1fr); }
+  .wallet-foot { flex-direction: column; }
+  .wallet-foot div { width: 100%; }
+  .account-money { grid-template-columns: 1fr; }
+  .reset-strip { grid-template-columns: 1fr; }
+}
