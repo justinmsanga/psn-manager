@@ -50,7 +50,6 @@ const Ledger = () => {
       <header className="page-top">
         <div>
           
-          <h1>Money & Ledger</h1>
           <p>Every cash movement in one clean trail.</p>
         </div>
         <button className="icon-shell" onClick={() => setIsSheetOpen(true)}><Plus size={21} /></button>

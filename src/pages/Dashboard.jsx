@@ -128,7 +128,6 @@ const Dashboard = ({ onAction }) => {
         <div className="admin-cluster">
           <div className="admin-avatar">{currentAdmin.name.slice(-1)}</div>
           <div>
-            <h1>PSN Manager</h1>
             <p>{currentAdmin.name} - {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
           </div>
         </div>
