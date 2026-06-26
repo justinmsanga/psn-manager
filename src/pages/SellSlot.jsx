@@ -34,7 +34,7 @@ const SellSlot = ({ onComplete }) => {
     const slot = normal || reset;
     if (!slot) return;
     setSelected({ account, consoleType, slot });
-    setForm((prev) => ({ ...prev, price: consoleType === 'ps5' ? '4.00' : '3.50' }));
+    setForm((prev) => ({ ...prev, price: '0' }));
   };
 
   const submit = async (event) => {
