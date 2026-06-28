@@ -64,18 +64,26 @@ const Dashboard = ({ onAction }) => {
     let withdrawal = 0;
     let expense = 0;
     let adjustment = 0;
+    const accountNet = {};
 
     filteredTransactions.forEach(t => {
       const amount = Number(t.amount || 0);
       switch (t.type) {
         case 'capital_in': capitalIn += amount; break;
-        case 'account_purchase': accountPurchase += amount; break;
-        case 'psn_deposit': psnDeposit += amount; break;
-        case 'slot_sale': slotSale += amount; break;
+        case 'account_purchase': accountPurchase += amount; if (t.accountId) accountNet[t.accountId] = (accountNet[t.accountId] || 0) - amount; break;
+        case 'psn_deposit': psnDeposit += amount; if (t.accountId) accountNet[t.accountId] = (accountNet[t.accountId] || 0) - amount; break;
+        case 'slot_sale': slotSale += amount; if (t.accountId) accountNet[t.accountId] = (accountNet[t.accountId] || 0) + amount; break;
         case 'withdrawal': withdrawal += amount; break;
-        case 'expense': expense += amount; break;
+        case 'expense': expense += amount; if (t.accountId) accountNet[t.accountId] = (accountNet[t.accountId] || 0) - amount; break;
         case 'adjustment': adjustment += amount; break;
       }
+    });
+
+    let profit = 0;
+    let loss = 0;
+    Object.values(accountNet).forEach(net => {
+      if (net > 0) profit += net;
+      else loss += Math.abs(net);
     });
 
     const balance = capitalIn + slotSale + adjustment - accountPurchase - psnDeposit - withdrawal - expense;
@@ -86,6 +94,7 @@ const Dashboard = ({ onAction }) => {
       totalSpent: capitalIn - balance,
       cashIn: capitalIn + slotSale,
       cashOut: accountPurchase + psnDeposit + expense + withdrawal,
+      profit, loss,
     };
   }, [filteredTransactions]);
 
@@ -162,7 +171,9 @@ const Dashboard = ({ onAction }) => {
     { label: 'Total spent', value: currency(periodStats.totalSpent), tone: 'danger' },
     { label: 'PSN wallet locked', value: currency(walletStats.psnWalletsBalance), tone: 'muted' },
     { label: 'Withdrawn profit', value: currency(periodStats.withdrawal), tone: 'danger' },
-    { label: 'Expenses', value: currency(periodStats.expense), tone: 'danger' }
+    { label: 'Expenses', value: currency(periodStats.expense), tone: 'danger' },
+    { label: 'Profit', value: currency(periodStats.profit), tone: 'success' },
+    { label: 'Loss', value: currency(periodStats.loss), tone: 'danger' }
   ];
 
   const quickActions = [
