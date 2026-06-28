@@ -222,8 +222,9 @@ export const StoreProvider = ({ children }) => {
     const totalInvested = capitalIn;
     const revenue = slotSale;
     const profit = revenue + psnWalletsBalance - totalInvested;
+    const totalSpent = capitalIn - balance;
 
-    return { balance, capitalIn, accountPurchase, psnDeposit, slotSale, withdrawal, expense, adjustment, psnWalletsBalance, totalInvested, revenue, profit };
+    return { balance, capitalIn, accountPurchase, psnDeposit, slotSale, withdrawal, expense, adjustment, psnWalletsBalance, totalInvested, revenue, profit, totalSpent };
   }, [transactions, accounts]);
 
   const getAccountStats = (acc) => {
