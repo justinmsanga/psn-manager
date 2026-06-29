@@ -98,7 +98,7 @@ const computeBusinessBalance = (txs) => {
     }
   });
 
-  return (capitalIn + adjustment) - (accountPurchase + psnDeposit + withdrawal + expense);
+  return Math.max(0, (capitalIn + adjustment) - (accountPurchase + psnDeposit + withdrawal + expense));
 };
 
 const formatTzs = (value) => new Intl.NumberFormat('en-TZ', {

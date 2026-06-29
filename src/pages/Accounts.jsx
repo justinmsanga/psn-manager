@@ -23,43 +23,30 @@ const Accounts = ({ onViewDetails }) => {
   const backupToSheet = useCallback(async () => {
     if (!sheetUrl) { setBackupStatus('Set your web app URL first'); return; }
     setBackupStatus('saving');
-    let ok = 0, fail = 0;
-    for (const acc of accounts) {
-      const gameNames = (acc.games || []).map(id => games.find(g => g.id === id)?.name || 'Unknown');
-      const slotHistory = [];
-      const ps5Slots = (acc.slots?.ps5 || []).map(s => {
-        if (s.status === 'sold') slotHistory.push({ console: 'PS5', slot: s.id, price: s.price, date: s.date });
-        return s.status === 'sold' || s.status === 'locked';
-      });
-      const ps4Slots = (acc.slots?.ps4 || []).map(s => {
-        if (s.status === 'sold') slotHistory.push({ console: 'PS4', slot: s.id, price: s.price, date: s.date });
-        return s.status === 'sold' || s.status === 'locked';
-      });
-      const payload = {
-        action: 'add',
-        account: {
-          email: acc.email,
-          password: acc.password || '',
-          console: 'Both PS4 & PS5',
-          region: acc.region || 'US',
-          games: gameNames,
-          costTZS: Number(acc.purchaseCost || 0),
-          targetSellTZS: 0,
-          actualSellTZS: Number(acc.revenue || 0),
-          ps5Slots: ps5Slots.length ? ps5Slots : [false, false, false],
-          ps4Slots: ps4Slots.length ? ps4Slots : [false, false, false],
-          status: acc.condition === 'clean' ? 'Available' : acc.condition === 'warning' ? 'Partial' : 'Available',
-          dateAdded: acc.createdAt || '',
-          slotHistory,
-          notes: acc.notes || '',
+    try {
+      const list = accounts.map(a => ({
+        id: a.id,
+        email: a.email,
+        region: a.region || 'US',
+        condition: a.condition || 'clean',
+        status: a.status || 'active',
+        purchaseCost: Number(a.purchaseCost) || 0,
+        psnDeposits: Number(a.psnDeposits) || 0,
+        psnGamePurchases: Number(a.psnGamePurchases) || 0,
+        revenue: Number(a.revenue) || 0,
+        games: (a.games || []).map(id => games.find(g => g.id === id)?.name || 'Unknown'),
+        notes: a.notes || '',
+        slots: {
+          ps4: (a.slots?.ps4 || []).map(s => ({ status: s.status })),
+          ps5: (a.slots?.ps5 || []).map(s => ({ status: s.status })),
         },
-      };
-      try {
-        await fetch(sheetUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        ok++;
-      } catch { fail++; }
-    }
-    setBackupStatus(fail ? 'error' : 'done');
+        nextDeactivation: a.nextDeactivation || '',
+        createdAt: a.createdAt || '',
+      }));
+      const res = await fetch(sheetUrl, { method: 'POST', body: JSON.stringify({ accounts: list }) });
+      const data = await res.json();
+      setBackupStatus(data.success ? 'done' : 'error');
+    } catch { setBackupStatus('error'); }
     setTimeout(() => setBackupStatus(null), 4000);
   }, [sheetUrl, accounts, games]);
   const openEditAccount = (account) => { setEditingAccount(account); setSelectedGames([...account.games]); setNewGameNames(['']); setOpen(true); };
