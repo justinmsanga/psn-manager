@@ -50,7 +50,7 @@ const Reports = () => {
       if (net > 0) accountProfit += net;
       else accountLoss += Math.abs(net);
     });
-    const balance = Math.max(0, capitalIn + adjustment - accountPurchase - psnDeposit - withdrawal - expense);
+    const balance = Math.max(0, capitalIn + slotSale + adjustment - accountPurchase - psnDeposit - withdrawal - expense);
     const profit = slotSale - expense;
     return {
       revenue: slotSale, profit, capitalIn,
