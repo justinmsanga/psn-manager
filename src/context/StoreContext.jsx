@@ -10,6 +10,8 @@ const plusSixMonths = () => {
   date.setMonth(date.getMonth() + 6);
   return date.toISOString().split('T')[0];
 };
+const isFutureDate = (dateString) =>
+  Boolean(dateString) && new Date(`${dateString}T23:59:59`) > new Date();
 
 const dbGameToUi = (game) => ({
   id: game.id,
@@ -20,6 +22,7 @@ const dbGameToUi = (game) => ({
 
 const dbSlotToUi = (slot) => ({
   id: slot.id,
+  slotNumber: slot.slot_number,
   type: slot.slot_type,
   status: slot.status,
   price: Number(slot.price || 0),
@@ -46,8 +49,8 @@ const dbAccountToUi = (account) => {
     games: accountGames.map((item) => item.game_id),
     gameDetails: accountGames.map((item) => item.games).filter(Boolean).map(dbGameToUi),
     slots: {
-      ps4: slots.filter((slot) => slot.console === 'ps4').sort((a, b) => a.slot_number - b.slot_number).map(dbSlotToUi),
-      ps5: slots.filter((slot) => slot.console === 'ps5').sort((a, b) => a.slot_number - b.slot_number).map(dbSlotToUi),
+      ps4: slots.filter((slot) => slot.console === 'ps4').sort((a, b) => a.slot_number - b.slot_number || a.reset_cycle - b.reset_cycle).map(dbSlotToUi),
+      ps5: slots.filter((slot) => slot.console === 'ps5').sort((a, b) => a.slot_number - b.slot_number || a.reset_cycle - b.reset_cycle).map(dbSlotToUi),
     },
     expenses: [],
     lastDeactivation: account.last_deactivation,
@@ -223,10 +226,10 @@ export const StoreProvider = ({ children }) => {
 
     const balance = computeBusinessBalance(transactions);
     const psnWalletsBalance = accounts.reduce((sum, acc) => sum + (Number(acc.psnDeposits || 0) - Number(acc.psnGamePurchases || 0)), 0);
-    const totalInvested = capitalIn;
+    const totalInvested = accountPurchase + psnDeposit + expense;
     const revenue = slotSale;
     const profit = revenue + psnWalletsBalance - totalInvested;
-    const totalSpent = capitalIn - balance;
+    const totalSpent = accountPurchase + psnDeposit + expense;
 
     return { balance, capitalIn, accountPurchase, psnDeposit, slotSale, withdrawal, expense, adjustment, psnWalletsBalance, totalInvested, revenue, profit, totalSpent };
   }, [transactions, accounts]);
@@ -365,30 +368,84 @@ export const StoreProvider = ({ children }) => {
   };
 
   const recordGamePurchase = async (accountId, gameId, cost) => {
+    const account = accounts.find((acc) => acc.id === accountId);
+    const amount = Number(cost || 0);
+    if (!account) throw new Error('Account not found.');
+    if (!gameId) throw new Error('Choose a game first.');
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error('Enter a valid game cost greater than zero.');
+    const psnBalance = Number(account.psnDeposits || 0) - Number(account.psnGamePurchases || 0);
+    if (amount > psnBalance) {
+      throw new Error(`Not enough PSN wallet money. Available: ${formatTzs(psnBalance)}.`);
+    }
+
     if (dbReady && supabase) {
-      const account = accounts.find((acc) => acc.id === accountId);
-      const nextPurchases = Number(account.psnGamePurchases || 0) + Number(cost || 0);
-      await supabase.from('accounts').update({ psn_game_purchases: nextPurchases }).eq('id', accountId);
-      await supabase.from('account_games').upsert({ account_id: accountId, game_id: gameId, purchase_price: Number(cost || 0), purchase_date: today() });
+      const nextPurchases = Number(account.psnGamePurchases || 0) + amount;
+      const { error: accountError } = await supabase.from('accounts').update({ psn_game_purchases: nextPurchases }).eq('id', accountId);
+      if (accountError) throw accountError;
+      const { error: gameError } = await supabase.from('account_games').upsert({
+        account_id: accountId,
+        game_id: gameId,
+        purchase_price: amount,
+        purchase_date: today(),
+      });
+      if (gameError) throw gameError;
+      await logActivity('game_purchased', 'account', accountId, { gameId, cost: amount });
       await loadFromSupabase({ silent: true });
       return;
     }
 
     setAccounts(prev => prev.map(acc => acc.id !== accountId ? acc : {
       ...acc,
-      psnGamePurchases: Number(acc.psnGamePurchases || 0) + Number(cost || 0),
+      psnGamePurchases: Number(acc.psnGamePurchases || 0) + amount,
       games: [...new Set([...acc.games, gameId])]
     }));
   };
 
   const markDeactivated = async (accountId) => {
+    const account = accounts.find((acc) => acc.id === accountId);
+    if (!account) throw new Error('Account not found.');
+    if (isFutureDate(account.nextDeactivation)) {
+      throw new Error(`Next deactivation is available on ${account.nextDeactivation}.`);
+    }
+
+    const allSlots = [...account.slots.ps4, ...account.slots.ps5];
+    const lockedResetSlots = allSlots.filter((slot) => slot.type === 'reset' && slot.status === 'locked');
+    const availableResetSlots = allSlots.filter((slot) => slot.type === 'reset' && slot.status === 'available');
+    if (availableResetSlots.length) {
+      throw new Error('Sell the currently available reset slots before starting another cycle.');
+    }
+
+    if (lockedResetSlots.length) {
+      const ps4NormalSold = account.slots.ps4.filter((slot) => slot.type === 'normal' && slot.status === 'sold').length;
+      const ps5NormalSold = account.slots.ps5.filter((slot) => slot.type === 'normal' && slot.status === 'sold').length;
+      if (ps4NormalSold < 2 || ps5NormalSold < 2) {
+        throw new Error('Sell both normal PS4 slots and both normal PS5 slots before deactivation.');
+      }
+    }
+
     const lastDeact = today();
     const nextDeact = plusSixMonths();
+    const nextCycle = Math.max(0, ...allSlots.filter((slot) => slot.type === 'reset').map((slot) => Number(slot.resetCycle || 0))) + 1;
 
     if (dbReady && supabase) {
-      await supabase.from('accounts').update({ last_deactivation: lastDeact, next_deactivation: nextDeact }).eq('id', accountId);
-      await supabase.from('slots').update({ status: 'available' }).eq('account_id', accountId).eq('slot_type', 'reset').eq('status', 'locked');
-      await supabase.from('reset_cycles').insert({ account_id: accountId, deactivated_at: lastDeact, next_available_at: nextDeact, created_by: currentAdmin.name });
+      const { error: accountError } = await supabase.from('accounts').update({ last_deactivation: lastDeact, next_deactivation: nextDeact }).eq('id', accountId);
+      if (accountError) throw accountError;
+      if (lockedResetSlots.length) {
+        const { error: slotsError } = await supabase.from('slots').update({ status: 'available' }).eq('account_id', accountId).eq('slot_type', 'reset').eq('status', 'locked');
+        if (slotsError) throw slotsError;
+      } else {
+        const { error: slotsError } = await supabase.from('slots').insert(['ps4', 'ps5'].map((consoleName) => ({
+          account_id: accountId,
+          console: consoleName,
+          slot_number: 3,
+          slot_type: 'reset',
+          status: 'available',
+          reset_cycle: nextCycle,
+        })));
+        if (slotsError) throw slotsError;
+      }
+      const { error: cycleError } = await supabase.from('reset_cycles').insert({ account_id: accountId, deactivated_at: lastDeact, next_available_at: nextDeact, created_by: currentAdmin.name });
+      if (cycleError) throw cycleError;
       await logActivity('account_deactivated', 'account', accountId);
       await loadFromSupabase({ silent: true });
       return;
@@ -396,11 +453,21 @@ export const StoreProvider = ({ children }) => {
 
     setAccounts(prev => prev.map(acc => {
       if (acc.id !== accountId) return acc;
+      const unlock = (slots, consoleName) => {
+        if (lockedResetSlots.length) return slots.map(s => s.type === 'reset' && s.status === 'locked' ? { ...s, status: 'available' } : s);
+        return [...slots, {
+          id: `${accountId}-${consoleName}-reset-${nextCycle}`,
+          slotNumber: 3,
+          type: 'reset',
+          status: 'available',
+          resetCycle: nextCycle,
+        }];
+      };
       return {
         ...acc,
         slots: {
-          ps4: acc.slots.ps4.map(s => s.type === 'reset' ? { ...s, status: 'available' } : s),
-          ps5: acc.slots.ps5.map(s => s.type === 'reset' ? { ...s, status: 'available' } : s),
+          ps4: unlock(acc.slots.ps4, 'ps4'),
+          ps5: unlock(acc.slots.ps5, 'ps5'),
         },
         lastDeactivation: lastDeact,
         nextDeactivation: nextDeact,
@@ -422,6 +489,12 @@ export const StoreProvider = ({ children }) => {
   };
 
   const updateAccount = async (id, data) => {
+    const existingAccount = accounts.find((account) => account.id === id);
+    if (!existingAccount) throw new Error('Account not found.');
+    const nextCost = data.purchaseCost === undefined ? Number(existingAccount.purchaseCost || 0) : Number(data.purchaseCost || 0);
+    const costDifference = nextCost - Number(existingAccount.purchaseCost || 0);
+    if (costDifference > 0) assertSufficientBusinessBalance(costDifference, transactions);
+
     if (dbReady && supabase) {
       const payload = {};
       if (data.condition) payload.condition = data.condition;
@@ -430,17 +503,49 @@ export const StoreProvider = ({ children }) => {
       if (data.password !== undefined) payload.password = data.password;
       if (data.email !== undefined) payload.email = data.email;
       if (data.region !== undefined) payload.region = data.region;
-      if (data.purchaseCost !== undefined) payload.purchase_cost = data.purchaseCost;
-      await supabase.from('accounts').update(payload).eq('id', id);
+      if (data.purchaseCost !== undefined) payload.purchase_cost = nextCost;
+      const { error: accountError } = await supabase.from('accounts').update(payload).eq('id', id);
+      if (accountError) throw accountError;
+
+      if (data.purchaseCost !== undefined) {
+        const { data: purchaseRows, error: purchaseLookupError } = await supabase
+          .from('money_transactions')
+          .select('id')
+          .eq('account_id', id)
+          .eq('type', 'account_purchase')
+          .order('created_at', { ascending: true })
+          .limit(1);
+        if (purchaseLookupError) throw purchaseLookupError;
+        if (purchaseRows?.length) {
+          const { error: purchaseUpdateError } = await supabase.from('money_transactions').update({ amount: nextCost }).eq('id', purchaseRows[0].id);
+          if (purchaseUpdateError) throw purchaseUpdateError;
+        }
+      }
+
       if (data.games) {
-        await supabase.from('account_games').delete().eq('account_id', id);
-        await supabase.from('account_games').insert(
-          data.games.map((gameId) => ({ account_id: id, game_id: gameId, purchase_price: 0 }))
-        );
+        const { error: deleteGamesError } = await supabase.from('account_games').delete().eq('account_id', id);
+        if (deleteGamesError) throw deleteGamesError;
+        if (data.games.length) {
+          const { error: insertGamesError } = await supabase.from('account_games').insert(
+            data.games.map((gameId) => ({ account_id: id, game_id: gameId, purchase_price: 0 }))
+          );
+          if (insertGamesError) throw insertGamesError;
+        }
       }
       await logActivity('account_updated', 'account', id, payload);
       await loadFromSupabase({ silent: true });
       return;
+    }
+
+    if (data.purchaseCost !== undefined) {
+      let changed = false;
+      setTransactions((prev) => prev.map((tx) => {
+        if (!changed && tx.accountId === id && tx.type === 'account_purchase') {
+          changed = true;
+          return { ...tx, amount: nextCost };
+        }
+        return tx;
+      }));
     }
     setAccounts(prev => prev.map(acc => acc.id === id ? { ...acc, ...data } : acc));
   };
@@ -466,7 +571,12 @@ export const StoreProvider = ({ children }) => {
       return uiGame;
     }
 
-    const localGame = { id: `g${Date.now()}`, name: cleanName, default_ps4_price: Number(defaultPs4Price || 0), default_ps5_price: Number(defaultPs5Price || 0) };
+    const localGame = dbGameToUi({
+      id: `g${Date.now()}`,
+      name: cleanName,
+      default_ps4_price: Number(defaultPs4Price || 0),
+      default_ps5_price: Number(defaultPs5Price || 0),
+    });
     setGames((prev) => [...prev, localGame].sort((a, b) => a.name.localeCompare(b.name)));
     return localGame;
   };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, ArrowUpCircle, ArrowDownCircle, MinusCircle, Wallet, Receipt, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Plus, ArrowUpCircle, ArrowDownCircle, MinusCircle, Wallet, Receipt, ChevronDown, ChevronUp } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import Sheet from '../components/Sheet';
 import './Ledger.css';
@@ -95,7 +95,7 @@ const Ledger = () => {
           <div className="form-group"><label className="form-label">Type</label><select className="form-select" name="type"><option value="capital_in">Capital in</option><option value="withdrawal">Withdrawal</option><option value="expense">Expense</option><option value="adjustment">Adjustment</option></select></div>
           <div className="form-group"><label className="form-label">Amount</label><input className="form-input" name="amount" type="number" step="0.01" required /></div>
           <div className="form-group"><label className="form-label">Note</label><textarea className="form-textarea" name="note" required /></div>
-          <button className="sheet-submit-btn">Record</button>
+          <button className="sheet-submit-btn" disabled={saving}>{saving ? 'Saving...' : 'Record'}</button>
         </form>
       </Sheet>
     </div>

@@ -8,7 +8,6 @@ import {
   ShoppingCart,
   ReceiptText,
   Send,
-  TrendingUp,
   RotateCcw,
   AlertTriangle,
   ChevronRight,
@@ -44,7 +43,7 @@ const isInPeriod = (dateStr, period) => {
 };
 
 const Dashboard = ({ onAction }) => {
-  const { walletStats, accounts, transactions, addTransaction, games, currentAdmin } = useStore();
+  const { walletStats, accounts, transactions, addTransaction, games } = useStore();
   const [sheet, setSheet] = useState(null);
   const [saving, setSaving] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -78,14 +77,14 @@ const Dashboard = ({ onAction }) => {
       }
     });
 
-    const balance = Math.max(0, capitalIn + slotSale + adjustment - accountPurchase - psnDeposit - withdrawal - expense);
+    const cashOut = accountPurchase + psnDeposit + expense + withdrawal;
     return {
       capitalIn, accountPurchase, psnDeposit, slotSale, withdrawal, expense, adjustment,
-      totalInvested: capitalIn,
+      totalInvested: accountPurchase + psnDeposit + expense,
       revenue: slotSale,
-      totalSpent: capitalIn - balance,
-      cashIn: capitalIn + adjustment,
-      cashOut: accountPurchase + psnDeposit + expense + withdrawal,
+      totalSpent: accountPurchase + psnDeposit + expense,
+      cashIn: capitalIn + slotSale + adjustment,
+      cashOut,
     };
   }, [filteredTransactions]);
 
@@ -157,7 +156,7 @@ const Dashboard = ({ onAction }) => {
   };
 
   const metrics = [
-    { label: 'Total capital', value: currency(periodStats.totalInvested), tone: 'info' },
+    { label: 'Total invested', value: currency(periodStats.totalInvested), tone: 'info' },
     { label: 'Sales revenue', value: currency(periodStats.revenue), tone: 'success' },
     { label: 'Total spent', value: currency(periodStats.totalSpent), tone: 'danger' },
     { label: 'PSN wallet locked', value: currency(walletStats.psnWalletsBalance), tone: 'muted' },
