@@ -5,9 +5,4 @@ dist/
 auth/
 playwright-report/
 test-results/
-whatsapp-agent/.env
-whatsapp-agent/.venv/
-whatsapp-agent/__pycache__/
-whatsapp-agent/uploads/
-whatsapp-agent/outputs/
 *.log
