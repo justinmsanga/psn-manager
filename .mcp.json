@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "psn-manager": {
+      "command": "node",
+      "args": ["mcp-server/index.js"]
+    }
+  }
+}

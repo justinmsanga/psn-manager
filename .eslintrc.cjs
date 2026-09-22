@@ -9,7 +9,7 @@ module.exports = {
     'plugin:react/recommended',
     'plugin:react-hooks/recommended',
   ],
-  ignorePatterns: ['dist', 'node_modules'],
+  ignorePatterns: ['dist', 'node_modules', 'mcp-server', 'scripts', 'whatsapp-agent', 'extracted', 'stitch-export'],
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
