@@ -689,16 +689,16 @@ export const StoreProvider = ({ children }) => {
   };
 
   const SALE_TYPE_LABELS = {
-    offline_online: 'offline + online slot',
-    offline_only: 'offline-only slot',
-    online_only: 'online-only copy',
+    offline_online: 'Offline + Online',
+    offline_only: 'Offline',
+    online_only: 'Online',
   };
 
   const sellSlot = async ({ accountId, slotId, gameId, price, customer, note, payment = 'paid', saleType = 'offline_online', consoleType = null }) => {
     const game = games.find((g) => g.id === gameId);
     const gameName = game?.name || 'Unknown';
     const paymentTag = payment !== 'paid' ? ` (${payment})` : '';
-    const copyTag = saleType !== 'offline_online' ? ` [${SALE_TYPE_LABELS[saleType]}]` : '';
+    const copyTag = ` [${SALE_TYPE_LABELS[saleType] || saleType}]`;
     const saleNote = note?.trim() || `Sold slot for game: ${gameName}${paymentTag}${copyTag}`;
     await addTransaction({
       type: 'slot_sale',

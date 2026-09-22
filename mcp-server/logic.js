@@ -86,15 +86,15 @@ export function hasOnlineSale(transactions, accountId, consoleType) {
 }
 
 export const SALE_TYPE_LABELS = {
-  offline_online: 'offline + online slot',
-  offline_only: 'offline-only slot',
-  online_only: 'online-only copy',
+  offline_online: 'Offline + Online',
+  offline_only: 'Offline',
+  online_only: 'Online',
 };
 
 export function buildSaleNote({ gameName, payment, saleType, note }) {
   if (note?.trim()) return note.trim();
   const paymentTag = payment && payment !== 'paid' ? ` (${payment})` : '';
-  const copyTag = saleType && saleType !== 'offline_online' ? ` [${SALE_TYPE_LABELS[saleType]}]` : '';
+  const copyTag = ` [${SALE_TYPE_LABELS[saleType] || saleType}]`;
   return `Sold slot for game: ${gameName}${paymentTag}${copyTag}`;
 }
 

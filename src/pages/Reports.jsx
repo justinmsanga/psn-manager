@@ -57,7 +57,7 @@ const Reports = () => {
 
   const topGames = useMemo(() => {
     const map = new Map();
-    filteredTxs.filter(t=>t.type==='slot_sale').forEach((tx)=>{ const name=(tx.note||'').replace('Sold slot for game: ','') || 'Unknown'; map.set(name,(map.get(name)||0)+tx.amount); });
+    filteredTxs.filter(t=>t.type==='slot_sale').forEach((tx)=>{ const name=(tx.note||'').replace('Sold slot for game: ','').replace(/\s*\[[^\]]*\]$/,'').replace(/\s*\([^)]*\)$/,'') || 'Unknown'; map.set(name,(map.get(name)||0)+tx.amount); });
     return [...map.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
   }, [filteredTxs]);
   const resetList = accounts.filter(a=>a.nextDeactivation).slice(0,6);
