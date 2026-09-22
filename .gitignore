@@ -2,3 +2,16 @@
 node_modules/
 dist/
 vite.log
+dev-server.log
+
+# Sony/PSN login sessions and browser profiles - contain live cookies/tokens, never commit
+auth/
+
+# Test run artifacts
+playwright-report/
+test-results/
+playwright-messi-*.png
+
+# Python
+__pycache__/
+*.pyc

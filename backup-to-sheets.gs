@@ -21,8 +21,10 @@ function setupSheet() {
     'Next Deactivation', 'Created At'
   ]);
   sheet.setFrozenRows(1);
-  const bold = sheet.getRange('1:1');
-  bold.setFontWeight('bold');
+  const header = sheet.getRange('1:1');
+  header.setFontWeight('bold');
+  header.setBackground('#4285F4');
+  header.setFontColor('#FFFFFF');
 }
 
 function doPost(e) {

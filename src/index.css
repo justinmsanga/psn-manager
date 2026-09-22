@@ -22,7 +22,10 @@
   --danger-soft: #fef2f2;
   --warning: #f59e0b;
   --warning-soft: #fffbeb;
-  
+
+  --online: #7c3aed;
+  --online-soft: #f5f3ff;
+
   --border: #e2e8f0;
   --border-strong: #cbd5e1;
   
@@ -55,7 +58,10 @@
   --danger-soft: rgba(244, 63, 94, 0.15);
   --warning: #f59e0b;
   --warning-soft: rgba(245, 158, 11, 0.15);
-  
+
+  --online: #c4b5fd;
+  --online-soft: rgba(196, 181, 253, 0.16);
+
   --border: #262932;
   --border-strong: #45474a;
 }

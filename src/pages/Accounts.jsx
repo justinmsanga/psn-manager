@@ -6,7 +6,7 @@ import './Accounts.css';
 const money = (v) => new Intl.NumberFormat('en-TZ', { style: 'currency', currency: 'TZS', maximumFractionDigits: 0 }).format(Number(v || 0));
 
 const Accounts = ({ onViewDetails }) => {
-  const { accounts, games, getAccountStats, addAccount, createGame, deleteAccount, updateAccount } = useStore();
+  const { accounts, games, transactions, getAccountStats, addAccount, createGame, deleteAccount, updateAccount } = useStore();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
   const [open, setOpen] = useState(false);
@@ -59,8 +59,10 @@ const Accounts = ({ onViewDetails }) => {
     const availablePs5 = account.slots.ps5.filter((slot) => slot.status === 'available').length;
     const resetReady = allSlots.some((slot) => slot.type === 'reset' && slot.status === 'available');
     const soldOut = allSlots.every((slot) => slot.status === 'sold' || slot.status === 'locked');
-    return { account, stats, names, availablePs4, availablePs5, resetReady, soldOut };
-  }), [accounts, games, getAccountStats]);
+    const onlineSoldPs4 = transactions.some((t) => t.type === 'slot_sale' && t.saleType === 'online_only' && t.accountId === account.id && t.console === 'ps4');
+    const onlineSoldPs5 = transactions.some((t) => t.type === 'slot_sale' && t.saleType === 'online_only' && t.accountId === account.id && t.console === 'ps5');
+    return { account, stats, names, availablePs4, availablePs5, resetReady, soldOut, onlineSoldPs4, onlineSoldPs5 };
+  }), [accounts, games, transactions, getAccountStats]);
 
   const filtered = enriched.filter(({ account, stats, names, availablePs4, availablePs5, resetReady, soldOut }) => {
     const haystack = `${account.email} ${account.region} ${account.condition} ${names.join(' ')}`.toLowerCase();
@@ -137,11 +139,11 @@ const Accounts = ({ onViewDetails }) => {
       <section className="accounts-list">
         {filtered.length === 0 ? (
           <p className="empty-line">No accounts yet. Tap Buy / Add Account to create your first one.</p>
-        ) : visible.map(({ account, stats, names }) => (
+        ) : visible.map(({ account, stats, names, onlineSoldPs4, onlineSoldPs5 }) => (
           <article key={account.id} className="account-card" onClick={() => onViewDetails(account.id)}>
             <div className="account-head"><div><strong>{account.email}</strong><span>{account.region} - {account.condition}</span></div><div className="account-actions"><button className="icon-shell" onClick={(e) => { e.stopPropagation(); openEditAccount(account); }} title="Edit"><Pencil size={16}/></button><button className="icon-shell" onClick={(e) => { e.stopPropagation(); setConfirmDelete(account); }} title="Delete"><Trash2 size={16}/></button></div></div>
             <div className="game-chips">{names.slice(0,3).map((name)=><span key={name}>{name}</span>)}{names.length>3 && <span>+{names.length-3}</span>}</div>
-            <div className="slot-map"><SlotLine label="PS4" slots={account.slots.ps4}/><SlotLine label="PS5" slots={account.slots.ps5}/></div>
+            <div className="slot-map"><SlotLine label="PS4" slots={account.slots.ps4} onlineSold={onlineSoldPs4}/><SlotLine label="PS5" slots={account.slots.ps5} onlineSold={onlineSoldPs5}/></div>
             <div className="account-money"><div><small>Invested</small><b>{money(stats.totalInvested)}</b></div><div><small>Revenue</small><b>{money(account.revenue)}</b></div><div><small>P/L</small><b className={stats.profit>=0?'positive':'negative'}>{money(stats.profit)}</b></div><div><small>PSN left</small><b>{money(stats.psnBalance)}</b></div></div>
           </article>
         ))}
@@ -167,5 +169,5 @@ const Accounts = ({ onViewDetails }) => {
     </div>
   );
 };
-const SlotLine = ({ label, slots }) => <div className="slot-line"><span>{label}</span><div>{slots.map((slot)=><i key={slot.id} className={`${slot.status} ${slot.type}`} title={`${slot.type} ${slot.status}`}/>)}</div></div>;
+const SlotLine = ({ label, slots, onlineSold }) => <div className="slot-line"><span>{label}</span><div>{slots.map((slot)=><i key={slot.id} className={`${slot.status} ${slot.type}`} title={`${slot.type} ${slot.status}`}/>)}<i className={`online ${onlineSold ? 'sold' : 'available'}`} title={`online-only ${onlineSold ? 'sold' : 'available'}`}/></div></div>;
 export default Accounts;

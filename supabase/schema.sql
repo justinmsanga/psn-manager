@@ -73,8 +73,24 @@ create table if not exists public.money_transactions (
   note text,
   admin text not null default 'Admin',
   transaction_date date not null default current_date,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  sale_type text not null default 'offline_online' check (sale_type in ('offline_online', 'offline_only', 'online_only')),
+  console text check (console in ('ps4', 'ps5'))
 );
+
+-- Migration for existing databases: run this if money_transactions already exists without these columns.
+alter table public.money_transactions
+  add column if not exists sale_type text not null default 'offline_online';
+alter table public.money_transactions
+  drop constraint if exists money_transactions_sale_type_check;
+alter table public.money_transactions
+  add constraint money_transactions_sale_type_check check (sale_type in ('offline_online', 'offline_only', 'online_only'));
+alter table public.money_transactions
+  add column if not exists console text;
+alter table public.money_transactions
+  drop constraint if exists money_transactions_console_check;
+alter table public.money_transactions
+  add constraint money_transactions_console_check check (console in ('ps4', 'ps5'));
 
 create table if not exists public.reset_cycles (
   id uuid primary key default gen_random_uuid(),

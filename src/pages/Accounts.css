@@ -20,6 +20,9 @@
 .slot-line i.sold { background:var(--accent); border-color:var(--accent); }
 .slot-line i.locked { background:var(--warning-soft); border-color:var(--warning); }
 .slot-line i.reset { border-style:dashed; }
+.slot-line i.online { border-style:dotted; }
+.slot-line i.online.available { background:var(--online-soft); border-color:var(--online); }
+.slot-line i.online.sold { background:var(--online); border-color:var(--online); }
 .account-money { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:12px; }
 .account-money div { min-width:0; }
 .account-money small { display:block; color:var(--text-tertiary); font-size:10px; }

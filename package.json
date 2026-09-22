@@ -7,7 +7,29 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "sony:login": "node scripts/sony-login.js",
+    "sony:login:paste": "node scripts/sony-login.js --paste-password",
+    "sony:login:auto": "node scripts/sony-login.js --paste-password --auto-save",
+    "sony:login:fresh": "node scripts/sony-login.js --paste-password --auto-save",
+    "sony:login:firefox": "node scripts/sony-login.js --browser=firefox --paste-password --auto-save",
+    "sony:login:manual": "node scripts/sony-login.js --keep-profile --manual-login",
+    "sony:login:manual:firefox": "node scripts/sony-login.js --browser=firefox --keep-profile --manual-login",
+    "sony:login:normal": "node scripts/sony-normal-chrome.js",
+    "sony:check": "node scripts/sony-check-session.js",
+    "sony:check:normal": "node scripts/sony-normal-check.js",
+    "sony:eadol": "node scripts/sony-eadol-profile.js",
+    "sony:profile": "node scripts/sony-profile-pool.js",
+    "sony:profile:new": "node scripts/sony-profile-pool.js --new",
+    "sony:profile:next": "node scripts/sony-profile-pool.js --next",
+    "sony:profile:list": "node scripts/sony-profile-pool.js --list",
+    "sony:reach2fa": "node scripts/sony-reach-2fa.js --paste-password",
+    "sony:reach2fa:new": "node scripts/sony-reach-2fa.js --paste-password --rotate-on-error",
+    "sony:prepare2fa": "node scripts/sony-reach-2fa.js --paste-password --stop-before-submit",
+    "sony:human2fa:new": "node scripts/sony-reach-2fa.js --human-input --manual-password --stop-before-submit --rotate-on-error",
+    "sony:human2fa:eadol": "node scripts/sony-reach-2fa.js --eadol --human-input --manual-password --stop-before-submit"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",
@@ -19,6 +41,7 @@
     "tailwind-merge": "^2.3.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

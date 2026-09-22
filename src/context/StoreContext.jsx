@@ -70,6 +70,8 @@ const dbTransactionToUi = (tx) => ({
   customer: tx.customer || '',
   note: tx.note || '',
   admin: tx.admin || 'Admin',
+  saleType: tx.sale_type || 'offline_online',
+  console: tx.console || null,
 });
 
 const getAccountExpenseTotal = (accountId, txs) =>
@@ -300,6 +302,8 @@ export const StoreProvider = ({ children }) => {
           note: data.note || null,
           admin: currentAdmin.name,
           transaction_date: today(),
+          sale_type: data.saleType || 'offline_online',
+          console: data.console || null,
         };
         const { data: inserted, error } = await supabase
           .from('money_transactions')
@@ -684,19 +688,28 @@ export const StoreProvider = ({ children }) => {
     return finishAccount(accountId);
   };
 
-  const sellSlot = async ({ accountId, slotId, gameId, price, customer, note, payment = 'paid' }) => {
+  const SALE_TYPE_LABELS = {
+    offline_online: 'offline + online slot',
+    offline_only: 'offline-only slot',
+    online_only: 'online-only copy',
+  };
+
+  const sellSlot = async ({ accountId, slotId, gameId, price, customer, note, payment = 'paid', saleType = 'offline_online', consoleType = null }) => {
     const game = games.find((g) => g.id === gameId);
     const gameName = game?.name || 'Unknown';
     const paymentTag = payment !== 'paid' ? ` (${payment})` : '';
-    const saleNote = note?.trim() || `Sold slot for game: ${gameName}${paymentTag}`;
+    const copyTag = saleType !== 'offline_online' ? ` [${SALE_TYPE_LABELS[saleType]}]` : '';
+    const saleNote = note?.trim() || `Sold slot for game: ${gameName}${paymentTag}${copyTag}`;
     await addTransaction({
       type: 'slot_sale',
       amount: Number(price || 0),
       accountId,
-      slotId,
+      slotId: slotId || null,
       gameId,
       customer: customer || '',
       note: saleNote,
+      saleType,
+      console: consoleType,
     });
   };
 
