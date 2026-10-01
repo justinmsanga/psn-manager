@@ -6,9 +6,9 @@ import './SellSlot.css';
 const money = (v) => new Intl.NumberFormat('en-TZ', { style: 'currency', currency: 'TZS', maximumFractionDigits: 0 }).format(Number(v || 0));
 
 const SALE_TYPES = [
-  ['offline_online', 'Offline + Online'],
   ['offline_only', 'Offline'],
   ['online_only', 'Online'],
+  ['offline_online', 'Offline + Online'],
 ];
 
 const SellSlot = ({ onComplete }) => {
